@@ -1,0 +1,2721 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>カラオケボウリング</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="カラオケボウリング">
+  <!-- html2pdf.js (PDF出力用) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    /* ==========================================
+       1. 基本設定・カラーテーマ（ダーク/ライト）
+       ========================================== */
+    :root {
+      /* デフォルト（ダークモード） */
+      --bg-color: #0b0d12;
+      --card-bg: #161a22;
+      --panel-bg: #1f2430;
+      --accent-red: #ff2a5f;
+      --accent-yellow: #ffc107;
+      --accent-gold: #ffd700;
+      --accent-cyan: #00e5ff;
+      --accent-orange: #ff9800;
+      --text-main: #ffffff;
+      --text-sub: #a0a8b8;
+      --border-color: #2a3142;
+      --strike-color: #ff3b30;
+      --spare-color: #34c759;
+      --open-color: #007aff;
+
+      /* UIパーツ別詳細カラー */
+      --header-bg-top: #242936;
+      --header-bg-bottom: #12151c;
+      --btn-bg: #2a3142;
+      --btn-text: #ffffff;
+      --btn-border: #404b63;
+      --th-bg: #10131a;
+      --team-bg: #1a202c;
+      --total-bg: #182232;
+      --frame-bg: #12151d;
+      --frame-active-bg: #252b3b;
+      --frame-filled-bg: #1a1e29;
+      --mark-bg: #232938;
+      --reel-bg: #000000;
+      --info-bg: #11151f;
+      --modal-head-bg: #12151c;
+      --input-bg: #0f1218;
+      --input-border: #333a4d;
+      --input-text: #ffffff;
+      --wheel-bg: #0d1017;
+      --wheel-near-color: #ffffff;
+      --summary-bg: #11141c;
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+    }
+
+    [data-theme="light"] {
+      /* ライトモード */
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --panel-bg: #ffffff;
+      --accent-red: #e11d48;
+      --accent-yellow: #d97706;
+      --accent-gold: #b45309;
+      --accent-cyan: #0284c7;
+      --accent-orange: #ea580c;
+      --text-main: #1e293b;
+      --text-sub: #64748b;
+      --border-color: #cbd5e1;
+      --strike-color: #dc2626;
+      --spare-color: #16a34a;
+      --open-color: #2563eb;
+
+      /* UIパーツ別詳細カラー */
+      --header-bg-top: #e2e8f0;
+      --header-bg-bottom: #cbd5e1;
+      --btn-bg: #e2e8f0;
+      --btn-text: #1e293b;
+      --btn-border: #94a3b8;
+      --th-bg: #f8fafc;
+      --team-bg: #f1f5f9;
+      --total-bg: #e0f2fe;
+      --frame-bg: #ffffff;
+      --frame-active-bg: #bae6fd;
+      --frame-filled-bg: #f8fafc;
+      --mark-bg: #f1f5f9;
+      --reel-bg: #1e293b;
+      --info-bg: #e0f2fe;
+      --modal-head-bg: #e2e8f0;
+      --input-bg: #ffffff;
+      --input-border: #cbd5e1;
+      --input-text: #1e293b;
+      --wheel-bg: #f8fafc;
+      --wheel-near-color: #334155;
+      --summary-bg: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      overflow: hidden; /* スクロール禁止 */
+      position: fixed;
+    }
+
+    /* PWA Safe Area 考慮 */
+    #app-container {
+      width: 100%;
+      height: 100%;
+      padding-top: var(--safe-top);
+      padding-right: var(--safe-right);
+      padding-bottom: var(--safe-bottom);
+      padding-left: var(--safe-left);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ==========================================
+       2. ヘッダー領域
+       ========================================== */
+    header {
+      height: 48px;
+      background: linear-gradient(180deg, var(--header-bg-top) 0%, var(--header-bg-bottom) 100%);
+      border-bottom: 2px solid var(--accent-red);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-weight: 900;
+      font-size: 1.15rem;
+      letter-spacing: 1px;
+      background: linear-gradient(45deg, var(--accent-red), var(--accent-yellow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .time-badge {
+      background: rgba(0, 229, 255, 0.15);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      padding: 4px 12px;
+      border-radius: 14px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: default;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .time-badge.result-ready {
+      background: rgba(52, 199, 89, 0.15);
+      border-color: var(--spare-color);
+      color: var(--spare-color);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      animation: resultButtonPulse 1.8s ease-in-out infinite;
+    }
+
+    .time-badge.result-ready::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -80%;
+      width: 45%;
+      height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+      transform: skewX(-20deg);
+      animation: resultButtonShine 2.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes resultButtonPulse {
+      0%, 35%, 100% { box-shadow: 0 0 0 rgba(52, 199, 89, 0); }
+      45% { box-shadow: 0 0 5px rgba(52, 199, 89, 0.45), 0 0 12px rgba(52, 199, 89, 0.25); }
+      55% { box-shadow: 0 0 2px rgba(52, 199, 89, 0.2); }
+    }
+
+    @keyframes resultButtonShine {
+      0% { left: -80%; opacity: 0; }
+      15% { opacity: 1; }
+      35% { left: 130%; opacity: 0; }
+      100% { left: 130%; opacity: 0; }
+    }
+
+    .time-badge.result-ready:active {
+      transform: scale(0.96);
+      opacity: 0.8;
+    }
+
+    .time-badge:disabled { opacity: 1; }
+
+    .header-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--btn-border);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: active 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+      opacity: 0.8;
+    }
+
+    .btn-danger { background: #8b0000; border-color: var(--accent-red); color: #fff; }
+    .btn-primary { background: #0055b8; border-color: var(--open-color); color: #fff; }
+    .btn-success { background: #1b7a3e; border-color: var(--spare-color); color: #fff; }
+    .btn-warning { background: #b75300; border-color: var(--accent-orange); color: #fff; }
+
+    /* ==========================================
+       3. メインコンテンツ
+       ========================================== */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 320px; /* PC向けに右側入力を拡大 */
+      gap: 12px;
+      padding: 12px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .score-section {
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    .score-table-wrapper {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .score-table {
+      width: 100%;
+      height: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .score-table th, .score-table td {
+      border: 1px solid var(--border-color);
+      text-align: center;
+      vertical-align: middle;
+      padding: 4px;
+    }
+
+    .score-table th {
+      background: var(--th-bg);
+      color: var(--text-sub);
+      font-size: 0.82rem;
+      height: 28px;
+    }
+
+    .team-name-cell {
+      background: var(--team-bg);
+      font-weight: bold;
+      font-size: clamp(0.85rem, 25cqh, 1.2rem);
+      color: var(--accent-yellow);
+      width: 110px;
+      word-break: break-all;
+      container-type: size;
+    }
+
+    .total-score-cell {
+      background: var(--total-bg);
+      color: var(--accent-cyan);
+      font-size: clamp(1.1rem, 45cqh, 2.2rem);
+      font-weight: 900;
+      width: 90px;
+      container-type: size;
+    }
+
+    .frame-cell {
+      background: var(--frame-bg);
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+      container-type: size;
+    }
+
+    .frame-cell.active {
+      outline: 2px solid var(--accent-yellow);
+      background: var(--frame-active-bg) !important;
+    }
+
+    .frame-cell.filled {
+      background: var(--frame-filled-bg);
+    }
+
+    .frame-box {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+    }
+
+    .frame-top {
+      display: flex;
+      border-bottom: 1px dashed var(--border-color);
+      height: 50%;
+    }
+
+    .raw-score-val {
+      width: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-sub);
+      font-size: clamp(0.7rem, 28cqh, 1.3rem);
+    }
+
+    .mark-val {
+      width: 50%;
+      background: var(--mark-bg);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: clamp(0.75rem, 32cqh, 1.4rem);
+    }
+
+    .mark-strike { color: var(--accent-red); }
+    .mark-spare { color: var(--spare-color); }
+    .mark-g { color: var(--text-sub); }
+
+    .frame-bottom {
+      height: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: clamp(0.85rem, 40cqh, 1.8rem);
+      color: var(--text-main);
+    }
+
+    .waiting-text {
+      font-size: clamp(0.65rem, 26cqh, 1.1rem);
+      color: #e6a23c;
+    }
+
+    /* 右側入力セクション */
+    .input-section {
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      gap: 10px;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    .target-frame-info {
+      font-size: 0.85rem;
+      text-align: center;
+      color: var(--accent-cyan);
+      background: var(--info-bg);
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .save-btn {
+      width: 100%;
+      padding: 10px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      margin-top: auto;
+    }
+
+    /* ==========================================
+       4. フッター
+       ========================================== */
+    .roulette-footer {
+      height: 56px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      flex-shrink: 0;
+    }
+
+    .result-block {
+      flex: 7;
+      width: 70%;
+      height: 100%;
+      background: var(--reel-bg);
+      border: 1px solid var(--accent-red);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      padding: 0 12px;
+      position: relative;
+    }
+
+    .result-ticker-wrapper {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .result-ticker-text {
+      display: inline-block;
+      white-space: nowrap;
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: var(--accent-yellow);
+    }
+
+    .result-ticker-text.scroll {
+      padding-left: 100%;
+      animation: tickerScroll 12s linear infinite;
+    }
+
+    @keyframes tickerScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    .roulette-btn {
+      flex: 3;
+      width: 30%;
+      height: 100%;
+      background: linear-gradient(135deg, #ff2a5f 0%, #b3002d 100%);
+      color: white;
+      border: none;
+      padding: 0;
+      border-radius: 6px;
+      font-weight: 900;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      box-shadow: 0 2px 0 #7a001e;
+    }
+
+    .roulette-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 0 0 #7a001e;
+    }
+
+    .reroll-btn {
+      flex: 3;
+      width: 30%;
+      height: 100%;
+      background: linear-gradient(135deg, #ff9800 0%, #b56a00 100%);
+      color: white;
+      border: none;
+      padding: 0;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      box-shadow: 0 2px 0 #734300;
+    }
+
+    .reroll-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 0 0 #734300;
+    }
+
+    .reel-window {
+      width: 100%;
+      min-height: 90px;
+      background: var(--reel-bg);
+      border: 2px solid var(--accent-red);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 10px rgba(255, 42, 95, 0.3);
+    }
+
+    .reel-container {
+      width: 100%;
+      text-align: center;
+      padding: 0 12px;
+      transition: transform 0.1s linear;
+    }
+
+    .reel-item {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--accent-yellow);
+      line-height: 1.3;
+      word-break: break-all;
+    }
+
+    .reel-window.spinning .reel-container {
+      animation: reelSpin 0.1s infinite linear;
+    }
+
+    @keyframes reelSpin {
+      0% { transform: translateY(-20px); opacity: 0.5; }
+      100% { transform: translateY(20px); opacity: 0.5; }
+    }
+
+    /* ==========================================
+       5. 画面サイズ別最適化（PC / モバイル）
+       ========================================== */
+    /* PC・大画面（幅768px以上） */
+    @media (min-width: 768px) {
+      header {
+        height: 52px;
+        padding: 0 20px;
+      }
+      .logo { font-size: 1.3rem; }
+      .time-badge { font-size: 0.88rem; padding: 5px 14px; }
+      .btn { padding: 7px 16px; font-size: 0.88rem; }
+
+      main {
+        grid-template-columns: 1fr 340px;
+        gap: 14px;
+        padding: 14px;
+      }
+
+      .target-frame-info { font-size: 0.9rem; padding: 8px 10px; }
+      .form-group label { font-size: 0.8rem; margin-bottom: 3px; }
+      .form-control { padding: 7px 10px; font-size: 0.9rem; }
+      .wheel-label { font-size: 0.82rem; }
+      .wheel-container { height: 140px; }
+      .wheel-highlight { top: 52px; height: 36px; }
+
+      .roulette-footer { height: 60px; padding: 8px 16px; gap: 12px; }
+      .result-ticker-text { font-size: 1.05rem; }
+      .roulette-btn, .reroll-btn { font-size: 0.98rem; }
+    }
+
+    /* 縦画面・スマホサイズ */
+    @media (max-width: 767px) or (orientation: portrait) {
+      header {
+        height: auto;
+        padding: 6px 8px;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .logo { font-size: 0.95rem; }
+      .header-info { gap: 6px; }
+      .time-badge { font-size: 0.7rem; padding: 2px 6px; }
+      .btn { padding: 4px 8px; font-size: 0.72rem; }
+      main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+        gap: 6px;
+        padding: 6px;
+      }
+      .team-name-cell { width: 80px; }
+      .total-score-cell { width: 70px; }
+      .input-section { padding: 6px; gap: 4px; }
+      .save-btn { padding: 6px; font-size: 0.85rem; }
+      .target-frame-info { font-size: 0.7rem; padding: 2px 4px; }
+    }
+
+    /* ==========================================
+       6. モーダル
+       ========================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      width: 90%;
+      max-width: 560px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      background: var(--modal-head-bg);
+      padding: 12px 18px;
+      font-weight: bold;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--accent-yellow);
+    }
+
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    .modal-footer {
+      padding: 12px 16px;
+      background: var(--modal-head-bg);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      color: var(--text-sub);
+      font-size: 0.78rem;
+    }
+
+    .form-control {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: var(--input-text);
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+    }
+
+    .num-input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .wheel-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .wheel-label {
+      color: var(--text-sub);
+      font-size: 0.78rem;
+      font-weight: bold;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: 100%;
+      height: 112px;
+      background: var(--wheel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .wheel-highlight {
+      position: absolute;
+      top: 42px;
+      left: 4px;
+      right: 4px;
+      height: 28px;
+      border-top: 2px solid var(--accent-cyan);
+      border-bottom: 2px solid var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.08);
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .wheel-scroll {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+      padding: 0;
+    }
+
+    .wheel-item {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 28px;
+      line-height: 28px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.08s ease-out, opacity 0.08s ease-out, color 0.08s ease-out, font-size 0.08s ease-out;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .wheel-item.selected {
+      opacity: 1;
+      color: var(--accent-cyan);
+      font-size: 1.2rem;
+      font-weight: 900;
+      text-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
+      z-index: 3;
+    }
+
+    .wheel-item.near {
+      opacity: 0.55;
+      font-size: 0.95rem;
+      color: var(--wheel-near-color);
+      z-index: 1;
+    }
+
+    .wheel-item.far {
+      opacity: 0.18;
+      font-size: 0.8rem;
+      z-index: 0;
+    }
+
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .breakdown-table th, .breakdown-table td {
+      border: 1px solid var(--border-color);
+      padding: 6px 4px;
+      text-align: center;
+    }
+
+    .breakdown-table th {
+      background: var(--modal-head-bg);
+      color: var(--accent-cyan);
+    }
+
+    #pdf-print-area { display: none; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #pdf-print-area, #pdf-print-area * { visibility: visible; }
+      #pdf-print-area {
+        position: absolute;
+        left: 0; top: 0;
+        width: 100%;
+        display: block !important;
+        background: #fff !important;
+        color: #000 !important;
+      }
+    }
+
+    /* ==========================================
+       7. アニメーション演出
+       ========================================== */
+    .effect-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 9999;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.12) 0deg 10deg, transparent 10deg 20deg), rgba(0, 0, 0, 0.75);
+      transition: opacity 0.2s ease;
+    }
+
+    .effect-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .effect-overlay.strike-anim .strike-img,
+    .effect-overlay.spare-anim .strike-img {
+      display: block;
+    }
+    .effect-overlay.strike-anim .effect-burst,
+    .effect-overlay.strike-anim .effect-text,
+    .effect-overlay.spare-anim .effect-burst,
+    .effect-overlay.spare-anim .effect-text {
+      display: none !important;
+    }
+
+    .effect-burst {
+      position: absolute;
+      width: clamp(260px, 60vw, 420px);
+      height: clamp(180px, 45vh, 280px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+    }
+
+    .effect-text {
+      position: relative;
+      z-index: 2;
+      font-size: clamp(2.2rem, 8vw, 4.5rem);
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-align: center;
+      white-space: nowrap;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+    }
+
+    .effect-overlay.strike-anim .effect-burst {
+      background: linear-gradient(135deg, #ff0055 0%, #ffcc00 100%);
+      clip-path: polygon(50% 0%, 62% 14%, 80% 3%, 81% 22%, 99% 16%, 89% 34%, 100% 50%, 88% 66%, 97% 84%, 78% 79%, 74% 98%, 58% 86%, 45% 98%, 34% 84%, 17% 92%, 21% 74%, 2% 68%, 12% 51%, 0% 34%, 16% 25%, 9% 6%, 28% 15%);
+      filter: drop-shadow(0 0 20px rgba(255, 42, 95, 0.9));
+      animation: strikeBurst 3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .effect-overlay.strike-anim .effect-text {
+      color: #ffffff;
+      -webkit-text-stroke: 3px #8b0000;
+      animation: strikeText 3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes strikeBurst {
+      0% { transform: scale(4) rotate(-25deg) translate(-100vw, -100vh); opacity: 0; }
+      12% { transform: scale(0.85) rotate(4deg) translate(0, 0); opacity: 1; }
+      18% { transform: scale(1.1) rotate(-2deg); }
+      24% { transform: scale(1) rotate(0deg); }
+      75% { transform: scale(1.05) rotate(1deg); opacity: 1; }
+      100% { transform: scale(0) rotate(15deg); opacity: 0; }
+    }
+
+    @keyframes strikeText {
+      0% { transform: scale(4) rotate(-25deg) translate(-100vw, -100vh); opacity: 0; }
+      12% { transform: scale(0.85) rotate(4deg) translate(0, 0); opacity: 1; }
+      18% { transform: scale(1.15) rotate(-2deg); }
+      24% { transform: scale(1) rotate(0deg); }
+      75% { transform: scale(1.05) rotate(1deg); opacity: 1; }
+      100% { transform: scale(0) rotate(15deg); opacity: 0; }
+    }
+
+    .effect-overlay.spare-anim .effect-burst {
+      background: linear-gradient(135deg, #00e676 0%, #cddc39 100%);
+      clip-path: polygon(50% 0%, 65% 10%, 85% 5%, 82% 25%, 100% 35%, 88% 52%, 98% 70%, 78% 75%, 70% 95%, 50% 85%, 30% 95%, 22% 75%, 2% 70%, 12% 52%, 0% 35%, 18% 25%, 15% 5%, 35% 10%);
+      filter: drop-shadow(0 0 20px rgba(52, 199, 89, 0.9));
+      animation: spareBurst 3s ease-in-out forwards;
+    }
+
+    .effect-overlay.spare-anim .effect-text {
+      color: #ffffff;
+      -webkit-text-stroke: 3px #1b5e20;
+      animation: spareText 3s ease-in-out forwards;
+    }
+
+    @keyframes spareBurst {
+      0% { transform: translateY(100vh) scale(0.3) rotate(15deg); opacity: 0; }
+      15% { transform: translateY(-15px) scale(1.1) rotate(-5deg); opacity: 1; }
+      25% { transform: translateY(0) scale(1) rotate(0deg); }
+      75% { transform: translateY(0) scale(1.03); opacity: 1; }
+      100% { transform: translateY(-100vh) scale(0.4) rotate(-10deg); opacity: 0; }
+    }
+
+    @keyframes spareText {
+      0% { transform: translateY(100vh) scale(0.3) rotate(15deg); opacity: 0; }
+      15% { transform: translateY(-15px) scale(1.1) rotate(-5deg); opacity: 1; }
+      25% { transform: translateY(0) scale(1) rotate(0deg); }
+      75% { transform: translateY(0) scale(1.03); opacity: 1; }
+      100% { transform: translateY(-100vh) scale(0.4) rotate(-10deg); opacity: 0; }
+    }
+    
+    .strike-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: contain;
+      display: none;
+      z-index: 10;
+    }
+
+    .effect-overlay.strike-anim .strike-img { display: block; }
+    .effect-overlay.strike-anim .effect-burst,
+    .effect-overlay.strike-anim .effect-text { display: none !important; }
+
+    @keyframes shake {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      10% { transform: translate(-8px, -5px) rotate(-1deg); }
+      20% { transform: translate(8px, 5px) rotate(1deg); }
+      30% { transform: translate(-8px, 5px) rotate(0deg); }
+      40% { transform: translate(8px, -5px) rotate(1deg); }
+      50% { transform: translate(-8px, -5px) rotate(-1deg); }
+      60% { transform: translate(8px, 5px) rotate(0deg); }
+      70% { transform: translate(-8px, 5px) rotate(-1deg); }
+      80% { transform: translate(8px, -5px) rotate(1deg); }
+      90% { transform: translate(-8px, -5px) rotate(0deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+
+    .strike-img.shake {
+      animation: shake 0.08s infinite;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app-container">
+  <!-- ヘッダー -->
+  <header>
+    <div class="logo">🎤 丸美 カラオケボウリング</div>
+    <div class="header-info">
+      <button id="remaining-time" class="time-badge" onclick="openResultModal()" disabled>
+        残り -- フレーム (約--分)
+      </button>
+    </div>
+    <div class="header-btns">
+      <button class="btn btn-danger" onclick="confirmClearScores()">クリア</button>
+      <button class="btn" onclick="openSettingsModal()">設定</button>
+      <button class="btn btn-primary" onclick="openBreakdownModal()">内訳</button>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main>
+    <!-- 左部: スコア表 -->
+    <section class="score-section">
+      <div class="score-table-wrapper">
+        <table class="score-table">
+          <thead>
+            <tr id="score-table-header">
+              <th style="width: 110px;">チーム</th>
+              <th style="width: 90px;">合計</th>
+            </tr>
+          </thead>
+          <tbody id="score-table-body">
+            <!-- 動的に生成 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 右部: スコア入力エリア -->
+    <section class="input-section">
+      <div id="target-frame-display" class="target-frame-info">対象: 1曲目 - チーム1</div>
+      
+      <div class="form-group">
+        <label>曲名 (任意):</label>
+        <input type="text" id="input-song-title" class="form-control" placeholder="例: イケナイ太陽">
+      </div>
+
+      <!-- ダイヤルUI -->
+      <div class="num-input-grid">
+        <div class="wheel-group">
+          <label class="wheel-label">素点</label>
+          <div class="wheel-container">
+            <div class="wheel-highlight"></div>
+            <div class="wheel-scroll" id="wheel-scroll-raw"></div>
+          </div>
+          <input type="hidden" id="input-raw-score" value="90">
+        </div>
+
+        <div class="wheel-group">
+          <label class="wheel-label">全国平均</label>
+          <div class="wheel-container">
+            <div class="wheel-highlight"></div>
+            <div class="wheel-scroll" id="wheel-scroll-avg"></div>
+          </div>
+          <input type="hidden" id="input-avg-score" value="85">
+        </div>
+      </div>
+
+      <button id="btn-save-score" class="btn btn-success save-btn" onclick="saveScoreInput()">セット</button>
+    </section>
+  </main>
+
+  <!-- 選曲条件フッター -->
+  <footer class="roulette-footer">
+    <div class="result-block">
+      <div id="result-ticker-wrapper" class="result-ticker-wrapper">
+        <div id="footer-condition-text" class="result-ticker-text">（条件未選択）</div>
+      </div>
+    </div>
+    <button id="btn-spin-roulette" class="roulette-btn" onclick="openAndSpinRoulette()">回す</button>
+    <button id="btn-reroll-roulette" class="reroll-btn" style="display:none;" onclick="openRerollModal()">引き直し</button>
+  </footer>
+</div>
+
+<!-- ルーレットモーダル -->
+<div id="roulette-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 480px;">
+    <div class="modal-header">
+      <span id="roulette-modal-title">🎰 選曲条件ルーレット</span>
+      <span style="cursor:pointer;" onclick="closeModal('roulette-modal')">✕</span>
+    </div>
+    <div class="modal-body" style="padding: 24px 16px; text-align: center;">
+      <div id="reel-window" class="reel-window">
+        <div id="reel-container" class="reel-container">
+          <div id="reel-text" class="reel-item">ルーレット回転中...</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content: center;">
+      <button id="btn-modal-spin-close" class="btn btn-primary" style="width: 100%; padding: 10px; font-size: 0.95rem; display: none;" onclick="closeModal('roulette-modal')">確定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 各種モーダル -->
+<div id="score-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span id="modal-cell-title">スコア入力</span>
+      <span style="cursor:pointer;" onclick="closeModal('score-modal')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div class="target-frame-info" id="modal-condition-preview">条件: なし</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('score-modal')">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div id="settings-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>ゲーム設定</span>
+      <span style="cursor:pointer;" onclick="closeModal('settings-modal')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div class="num-input-grid">
+        <div class="form-group">
+          <label>チーム数 (1~5):</label>
+          <input type="number" id="setting-team-count" class="form-control" min="1" max="5">
+        </div>
+        <div class="form-group">
+          <label>1チームあたりの曲数 (1~10):</label>
+          <input type="number" id="setting-song-count" class="form-control" min="1" max="10">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: 4px;">
+        <label>画面テーマ (配色):</label>
+        <select id="setting-theme" class="form-control">
+          <option value="dark">ダークモード</option>
+          <option value="light">ライトモード</option>
+        </select>
+      </div>
+      <div id="team-names-container" class="form-group" style="margin-top: 4px;"></div>
+      <hr style="border-color: var(--border-color);">
+      <div style="font-weight: bold; color: var(--accent-cyan); margin-top:4px;">選曲条件</div>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        style="width:100%; padding:10px; margin-top:6px;"
+        onclick="openConditionsEditor()"
+      >
+        🎰 選曲条件を編集
+      </button>
+
+      <div style="font-size:0.78rem; color:var(--text-sub); margin-top:4px;">
+        選曲条件の追加・編集・削除を行います。
+      </div>
+
+      <hr style="border-color: var(--border-color);">
+      <div style="font-weight: bold; color: var(--accent-cyan); margin-top:4px;">ルール詳細設定</div>
+      <div class="num-input-grid">
+        <div class="form-group">
+          <label>スペア判定差 (素点-平均 ≧ X):</label>
+          <input type="number" step="1" id="setting-spare-diff" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>引き直しペナルティ:</label>
+          <input type="number" step="1" id="setting-reroll-penalty" class="form-control">
+        </div>
+      </div>
+      <div class="num-input-grid">
+        <div class="form-group">
+          <label>最終ストライク倍率:</label>
+          <input type="number" step="1" id="setting-final-strike" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>最終スペア倍率:</label>
+          <input type="number" step="1" id="setting-final-spare" class="form-control">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('settings-modal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveSettings()">保存して戻る</button>
+    </div>
+  </div>
+</div>
+
+<div id="reroll-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>🎰 ルーレット引き直し確認</span>
+      <span style="cursor:pointer;" onclick="closeModal('reroll-modal')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div id="reroll-confirm-msg" style="font-weight: bold; color: var(--accent-yellow); font-size: 0.95rem;">
+        引き直すと -5ポイントになりますがよろしいですか？
+      </div>
+      <div class="form-group" style="margin-top: 8px;">
+        <label>引き直すチームを選択してください:</label>
+        <select id="reroll-team-select" class="form-control"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('reroll-modal')">キャンセル</button>
+      <button class="btn btn-warning" onclick="executeReroll()">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="breakdown-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 760px; width: 95%;">
+    <div class="modal-header">
+      <span>スコア詳細内訳</span>
+      <span style="cursor:pointer;" onclick="closeModal('breakdown-modal')">✕</span>
+    </div>
+    <div class="modal-body" id="breakdown-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="exportPDF()">PDF出力シート生成</button>
+      <button class="btn" onclick="closeModal('breakdown-modal')">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div id="result-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>🏆 最終計算結果</span>
+      <span style="cursor:pointer;" onclick="closeModal('result-modal')">✕</span>
+    </div>
+    <div class="modal-body" id="result-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="exportPDF()">PDFスコア表を出力</button>
+      <button class="btn" onclick="closeModal('result-modal')">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 演出オーバーレイ -->
+<div id="effect-overlay" class="effect-overlay">
+  <img id="strike-img" class="strike-img" src="" alt="Strike Animation">
+  <div id="effect-burst" class="effect-burst"></div>
+  <div id="effect-text" class="effect-text"></div>
+</div>
+
+<script>
+  const STORAGE_KEY = "KARAOKE_BOWLING_DATA_V1";
+  const USED_CONDITIONS_KEY = "KARAOKE_BOWLING_USED_CONDITIONS_V1";
+  const DEFAULT_CONDITIONS = [
+    "自由！",
+    "男性ボーカルの曲",
+    "女性ボーカルの曲",
+    "あ行から始まるアーティスト",
+    "か行から始まるアーティスト",
+    "さ行から始まるアーティスト",
+    "た行から始まるアーティスト",
+    "な行から始まるアーティスト",
+    "は行から始まるアーティスト",
+    "ま行から始まるアーティスト",
+    "や行から始まるアーティスト",
+    "ら行から始まるアーティスト",
+    "わ行から始まるアーティスト",
+    "アーティスト名が漢字から始まる",
+    "アーティスト名がカタカナから始まる",
+    "アーティスト名がひらがなから始まる",
+    "アーティスト名がアルファベットから始まる",
+    "アーティスト名が5文字以上",
+    "アーティスト名が5文字以下",
+    "アーティスト名が8文字以下",
+    "ソロアーティスト",
+    "男女混成グループ",
+    "バンド",
+    "アーティスト名に色が入っている",
+    "ボカロ曲",
+    "アイドル曲",
+    "芸人もしくはYouTuberの曲",
+    "あ行から始まる曲名",
+    "か行から始まる曲名",
+    "さ行から始まる曲名",
+    "た行から始まる曲名",
+    "な行から始まる曲名",
+    "は行から始まる曲名",
+    "ま行から始まる曲名",
+    "や行から始まる曲名",
+    "ら行から始まる曲名",
+    "わ行から始まる曲名",
+    "曲名が漢字のみ",
+    "曲名がひらがなのみ",
+    "曲名がカタカナのみ",
+    "曲名がアルファベットのみ",
+    "曲名に漢字を含む",
+    "曲名に数字を含む",
+    "曲名にアルファベットを含む",
+    "曲名が5文字以上",
+    "曲名が10文字以上",
+    "曲名が5文字以下",
+    "曲名が8文字以下",
+    "曲名に「愛」が入っている",
+    "曲名に「の」が入っている",
+    "曲名に花の名前が入っている",
+    "曲名に長音(ー)が入っている",
+    "2000年代以前の曲",
+    "2010年代以降の曲",
+    "昭和の曲",
+    "平成の曲",
+    "令和の曲",
+    "アニメの曲",
+    "ドラマの曲",
+    "映画の曲",
+    "CMソング",
+    "本人映像のみ",
+    "歌詞に食べ物が出てくる",
+    "歌詞に地名が出てくる",
+    "歌詞に乗り物が出てくる",
+    "日本語禁止！(歌詞)",
+    "英文が含まれる歌詞",
+    "英語禁止！(歌詞)",
+    "月間DAMベスト50から",
+    "なんでもランキング(盛り上がる曲)",
+    "なんでもランキング(急上昇)",
+    "なんでもランキング(歌いやすい曲)",
+    "前の人の曲名としりとり",
+    "前の人のアーティスト名としりとり"
+  ];
+
+  let conditionsList = [...DEFAULT_CONDITIONS];
+
+  let gameState = {
+    settings: {
+      teamCount: 2,
+      songCount: 5,
+      teamNames: ["チームA", "チームB"],
+      spareDiff: 6,
+      rerollPenalty: -5,
+      finalStrikeBonus: 2,
+      finalSpareBonus: 2,
+      theme: "dark"
+    },
+    scores: [],
+    rerollPenalties: [0, 0],
+    frameConditions: [],
+    teamConditions: [],
+    currentCondition: "（条件未選択）",
+    activeCell: { teamIdx: 0, songIdx: 0 },
+    isFinished: false
+  };
+
+  let currentSpinContext = {
+    mode: "base",
+    teamIdx: 0,
+    songIdx: 0
+  };
+
+  /* ------------------------------------------
+     ダイヤルUI制御 (PC/モバイルの高さ可変対応)
+     ------------------------------------------ */
+  const WHEEL_MIN = 75;
+  const WHEEL_MAX = 100;
+
+  const wheelState = {
+    raw: { value: 90, startY: 0, lastY: 0, accumulated: 0, dragging: false },
+    avg: { value: 85, startY: 0, lastY: 0, accumulated: 0, dragging: false }
+  };
+
+  function initWheels() {
+    setupWheel("raw");
+    setupWheel("avg");
+  }
+
+  function setupWheel(type) {
+    const container = document.getElementById(`wheel-scroll-${type}`);
+    if (!container) return;
+
+    container.innerHTML = "";
+    for (let val = WHEEL_MIN; val <= WHEEL_MAX; val++) {
+      const item = document.createElement("div");
+      item.className = "wheel-item";
+      item.dataset.value = val;
+      item.textContent = val;
+      container.appendChild(item);
+    }
+
+    const state = wheelState[type];
+
+    container.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      state.dragging = true;
+      state.startY = e.clientY;
+      state.lastY = e.clientY;
+      state.accumulated = 0;
+      container.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+
+    const WHEEL_STEP_DISTANCE = 18;
+
+    container.addEventListener("pointermove", (e) => {
+      if (!state.dragging) return;
+      const deltaY = e.clientY - state.lastY;
+      state.lastY = e.clientY;
+      state.accumulated += deltaY;
+
+      while (state.accumulated <= -WHEEL_STEP_DISTANCE) {
+        changeWheelValue(type, 1);
+        state.accumulated += WHEEL_STEP_DISTANCE;
+      }
+      while (state.accumulated >= WHEEL_STEP_DISTANCE) {
+        changeWheelValue(type, -1);
+        state.accumulated -= WHEEL_STEP_DISTANCE;
+      }
+      e.preventDefault();
+    });
+
+    const endDrag = (e) => {
+      if (!state.dragging) return;
+      state.dragging = false;
+      state.accumulated = 0;
+      try { container.releasePointerCapture(e.pointerId); } catch (_) {}
+      e.preventDefault();
+    };
+
+    container.addEventListener("pointerup", endDrag);
+    container.addEventListener("pointercancel", endDrag);
+
+    container.addEventListener("click", (e) => {
+      const rect = container.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const center = rect.height / 2;
+      if (y < center - 20) { changeWheelValue(type, 1); }
+      else if (y > center + 20) { changeWheelValue(type, -1); }
+    });
+
+    renderWheel(type);
+  }
+
+  function changeWheelValue(type, amount) {
+    const state = wheelState[type];
+    const oldValue = state.value;
+    state.value = Math.max(WHEEL_MIN, Math.min(WHEEL_MAX, state.value + amount));
+    if (state.value === oldValue) return;
+
+    const inputElem = document.getElementById(`input-${type}-score`);
+    if (inputElem) inputElem.value = state.value;
+    renderWheel(type);
+
+    if (navigator.vibrate) navigator.vibrate(8);
+  }
+
+  function renderWheel(type) {
+    const container = document.getElementById(`wheel-scroll-${type}`);
+    const state = wheelState[type];
+    if (!container) return;
+
+    const parentContainer = container.closest('.wheel-container');
+    const containerHeight = parentContainer ? parentContainer.clientHeight : 112;
+    const centerY = containerHeight / 2;
+    const itemHeight = containerHeight >= 130 ? 36 : 28;
+
+    const items = container.querySelectorAll(".wheel-item");
+    items.forEach((item) => {
+      const val = parseInt(item.dataset.value, 10);
+      const diff = val - state.value;
+      item.classList.remove("selected", "near", "far");
+
+      const itemCenter = centerY + (diff * itemHeight);
+      item.style.top = `${itemCenter - itemHeight / 2}px`;
+      item.style.height = `${itemHeight}px`;
+      item.style.lineHeight = `${itemHeight}px`;
+
+      if (diff === 0) item.classList.add("selected");
+      else if (Math.abs(diff) === 1) item.classList.add("near");
+      else if (Math.abs(diff) === 2) item.classList.add("far");
+    });
+  }
+
+  function setWheelValue(type, val) {
+    let num = parseInt(val, 10);
+    if (isNaN(num)) num = type === "raw" ? 90 : 85;
+    num = Math.max(WHEEL_MIN, Math.min(WHEEL_MAX, num));
+    wheelState[type].value = num;
+
+    const inputElem = document.getElementById(`input-${type}-score`);
+    if (inputElem) inputElem.value = num;
+    renderWheel(type);
+  }
+
+  window.addEventListener("resize", () => {
+    renderWheel("raw");
+    renderWheel("avg");
+  });
+
+  /* ------------------------------------------
+     基本処理 & データ管理
+     ------------------------------------------ */
+  function applyTheme() {
+    const theme = (gameState.settings && gameState.settings.theme) ? gameState.settings.theme : "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    initWheels();
+    conditionsList = await fetchConditions();
+    loadState();
+    renderApp();
+    syncInputFormWithActiveCell();
+  });
+
+  function fetchConditions() {
+    try {
+      const saved = localStorage.getItem("KARAOKE_BOWLING_CONDITIONS_V1");
+      if (!saved) return DEFAULT_CONDITIONS.slice();
+
+      const parsed = JSON.parse(saved);
+      if (parsed && Array.isArray(parsed.categories)) {
+        const conditions = parsed.categories.flatMap(
+          category => Array.isArray(category.conditions) ? category.conditions : []
+        ).filter(
+          condition => typeof condition === "string" && condition.trim() !== ""
+        );
+
+        if (conditions.length > 0) return conditions;
+      }
+
+      return DEFAULT_CONDITIONS.slice();
+    } catch (error) {
+      console.error("条件データの読み込みに失敗しました:", error);
+      return DEFAULT_CONDITIONS.slice();
+    }
+  }
+
+  function loadUsedConditions() {
+    const saved = localStorage.getItem(USED_CONDITIONS_KEY);
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      console.error("使用済み条件の読み込みエラー", e);
+    }
+    return [];
+  }
+
+  function saveUsedConditions(usedConditions) {
+    localStorage.setItem(USED_CONDITIONS_KEY, JSON.stringify(usedConditions));
+  }
+
+  function markConditionAsUsed(condition) {
+    const usedConditions = loadUsedConditions();
+    if (!usedConditions.includes(condition)) {
+      usedConditions.push(condition);
+      saveUsedConditions(usedConditions);
+    }
+  }
+
+  function loadState() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        gameState = { ...gameState, ...parsed };
+        if (gameState.settings && gameState.settings.rerollPenalty === undefined) {
+          gameState.settings.rerollPenalty = -5;
+        }
+        if (gameState.settings && !gameState.settings.theme) {
+          gameState.settings.theme = "dark";
+        }
+      } catch (e) {
+        console.error("データ復元エラー", e);
+        initEmptyScores();
+      }
+    } else {
+      initEmptyScores();
+    }
+    ensureRerollPenalties();
+    ensureConditionsArrays();
+    applyTheme();
+  }
+
+  function ensureRerollPenalties() {
+    const count = (gameState.settings && gameState.settings.teamCount) ? gameState.settings.teamCount : 2;
+    if (!Array.isArray(gameState.rerollPenalties) || gameState.rerollPenalties.length !== count) {
+      gameState.rerollPenalties = Array(count).fill(0);
+    }
+  }
+
+  function ensureConditionsArrays() {
+    const { teamCount, songCount } = gameState.settings;
+    if (!Array.isArray(gameState.frameConditions) || gameState.frameConditions.length !== songCount) {
+      const old = gameState.frameConditions || [];
+      gameState.frameConditions = Array.from({ length: songCount }, (_, i) => old[i] || null);
+    }
+    if (!Array.isArray(gameState.teamConditions) || gameState.teamConditions.length !== teamCount) {
+      const oldTeam = gameState.teamConditions || [];
+      gameState.teamConditions = Array.from({ length: teamCount }, (_, t) => {
+        const oldSong = oldTeam[t] || [];
+        return Array.from({ length: songCount }, (_, s) => oldSong[s] || null);
+      });
+    } else {
+      for (let t = 0; t < teamCount; t++) {
+        if (!Array.isArray(gameState.teamConditions[t]) || gameState.teamConditions[t].length !== songCount) {
+          const oldSong = gameState.teamConditions[t] || [];
+          gameState.teamConditions[t] = Array.from({ length: songCount }, (_, s) => oldSong[s] || null);
+        }
+      }
+    }
+  }
+
+  function getEffectiveCondition(teamIdx, songIdx) {
+    if (gameState.teamConditions && gameState.teamConditions[teamIdx] && gameState.teamConditions[teamIdx][songIdx]) {
+      return gameState.teamConditions[teamIdx][songIdx];
+    }
+    if (gameState.frameConditions && gameState.frameConditions[songIdx]) {
+      return gameState.frameConditions[songIdx];
+    }
+    return null;
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+  }
+
+  function initEmptyScores() {
+    const { teamCount, songCount } = gameState.settings;
+    gameState.scores = Array.from({ length: teamCount }, () =>
+      Array.from({ length: songCount }, () => null)
+    );
+    gameState.rerollPenalties = Array(teamCount).fill(0);
+    gameState.frameConditions = Array(songCount).fill(null);
+    gameState.teamConditions = Array.from({ length: teamCount }, () =>
+      Array.from({ length: songCount }, () => null)
+    );
+    gameState.activeCell = { teamIdx: 0, songIdx: 0 };
+    gameState.isFinished = false;
+  }
+
+  function calculateFrameResult(teamIdx, songIdx) {
+    const frameData = gameState.scores[teamIdx][songIdx];
+    if (!frameData) return null;
+
+    const { rawScore, avgScore } = frameData;
+    const diff = rawScore - avgScore;
+    const isStrike = rawScore >= 92;
+    const isSpare = !isStrike && (diff >= gameState.settings.spareDiff);
+
+    const isLastSong = (songIdx === gameState.settings.songCount - 1);
+    const nextFrame = isLastSong ? null : gameState.scores[teamIdx][songIdx + 1];
+
+    let baseScore = rawScore + diff;
+    let bonus = 0;
+    let isWaiting = false;
+    let mark = "OPEN";
+
+    if (isStrike) {
+      mark = "STRIKE";
+      if (isLastSong) {
+        const subtotal = rawScore + (diff * gameState.settings.finalStrikeBonus);
+        bonus = subtotal - baseScore;
+      } else {
+        if (nextFrame) {
+          const nextDiff = nextFrame.rawScore - nextFrame.avgScore;
+          bonus = nextDiff * 2;
+        } else {
+          isWaiting = true;
+        }
+      }
+    } else if (isSpare) {
+      mark = "SPARE";
+      if (isLastSong) {
+        const subtotal = rawScore + (diff * gameState.settings.finalSpareBonus);
+        bonus = subtotal - baseScore;
+      } else {
+        if (nextFrame) {
+          const nextDiff = nextFrame.rawScore - nextFrame.avgScore;
+          bonus = nextDiff * 1;
+        } else {
+          isWaiting = true;
+        }
+      }
+    } else {
+      mark = "OPEN";
+      bonus = 0;
+    }
+
+    const subtotal = isWaiting ? baseScore : (baseScore + bonus);
+    const displayDiff = diff <= 0 ? "G" : `+${Math.round(diff)}`;
+
+    return {
+      rawScore, avgScore, diff, displayDiff,
+      isStrike, isSpare, mark, baseScore, bonus, subtotal, isWaiting
+    };
+  }
+
+  function renderApp() {
+    renderHeaderInfo();
+    renderScoreTable();
+    renderRouletteTarget();
+    updateFooterConditionDisplay();
+    checkAutoFinished();
+  }
+
+  function renderHeaderInfo() {
+    const { teamCount, songCount } = gameState.settings;
+    let filledCount = 0;
+    const totalFrames = teamCount * songCount;
+
+    for (let t = 0; t < teamCount; t++) {
+      for (let s = 0; s < songCount; s++) {
+        if (gameState.scores[t][s]) filledCount++;
+      }
+    }
+
+    const remainFrames = totalFrames - filledCount;
+    const remainElem = document.getElementById("remaining-time");
+
+    if (!remainElem) return;
+
+    if (remainFrames === 0) {
+      remainElem.textContent = "最終結果を表示";
+      remainElem.classList.add("result-ready");
+      remainElem.disabled = false;
+    } else {
+      const remainMinutes = remainFrames * 4;
+      remainElem.textContent = `残り ${remainFrames} フレーム (約${remainMinutes}分)`;
+      remainElem.classList.remove("result-ready");
+      remainElem.disabled = true;
+    }
+  }
+
+  function renderScoreTable() {
+    ensureRerollPenalties();
+    ensureConditionsArrays();
+    const { teamCount, songCount, teamNames } = gameState.settings;
+    const headerRow = document.getElementById("score-table-header");
+    const tbody = document.getElementById("score-table-body");
+
+    let headerHTML = `<th class="team-name-cell" style="width: 110px;">チーム</th>`;
+    for (let s = 0; s < songCount; s++) {
+      headerHTML += `<th>${s + 1}曲目</th>`;
+    }
+    headerHTML += `<th class="total-score-cell" style="width: 90px;">合計</th>`;
+    headerRow.innerHTML = headerHTML;
+
+    tbody.innerHTML = "";
+    for (let t = 0; t < teamCount; t++) {
+      const tr = document.createElement("tr");
+
+      const teamTd = document.createElement("td");
+      teamTd.className = "team-name-cell";
+      teamTd.textContent = teamNames[t] || `チーム${t + 1}`;
+      tr.appendChild(teamTd);
+
+      let teamTotalScore = 0;
+
+      for (let s = 0; s < songCount; s++) {
+        const td = document.createElement("td");
+        td.className = "frame-cell";
+        if (t === gameState.activeCell.teamIdx && s === gameState.activeCell.songIdx) {
+          td.classList.add("active");
+        }
+
+        const scoreData = gameState.scores[t][s];
+        const res = calculateFrameResult(t, s);
+
+        if (scoreData && res) {
+          td.classList.add("filled");
+          teamTotalScore += res.subtotal;
+
+          let markClass = "";
+          let markText = "";
+          if (res.isStrike) { markClass = "mark-strike"; markText = "X"; }
+          else if (res.isSpare) { markClass = "mark-spare"; markText = "/"; }
+          else {
+            markClass = "mark-g";
+            markText = res.diff <= 0 ? "G" : `${Math.round(res.diff)}`;
+          }
+          td.innerHTML = `
+            <div class="frame-box" onclick="selectCell(${t}, ${s})">
+              <div class="frame-top">
+                <span class="raw-score-val">${Math.round(scoreData.rawScore)}</span>
+                <span class="mark-val ${markClass}">${markText}</span>
+              </div>
+              <div class="frame-bottom">
+                ${res.isWaiting ? `<span class="waiting-text">次曲待ち</span>` : Math.round(res.subtotal)}
+              </div>
+            </div>
+          `;
+        } else {
+          td.innerHTML = `
+            <div class="frame-box" onclick="selectCell(${t}, ${s})">
+              <div class="frame-top">
+                <span class="raw-score-val">-</span>
+                <span class="mark-val"></span>
+              </div>
+              <div class="frame-bottom">-</div>
+            </div>
+          `;
+        }
+        tr.appendChild(td);
+      }
+
+      const totalTd = document.createElement("td");
+      totalTd.className = "total-score-cell";
+      const penalty = gameState.rerollPenalties[t] || 0;
+      const finalTeamTotal = teamTotalScore + penalty;
+      totalTd.textContent = Math.round(finalTeamTotal);
+      tr.appendChild(totalTd);
+
+      tbody.appendChild(tr);
+    }
+  }
+
+  function renderRouletteTarget() {
+    const { teamIdx, songIdx } = gameState.activeCell;
+    const teamName = gameState.settings.teamNames[teamIdx] || `チーム${teamIdx + 1}`;
+    document.getElementById("target-frame-display").textContent = `対象: ${songIdx + 1}曲目 - ${teamName}`;
+  }
+
+  function updateFooterConditionDisplay() {
+    const elem = document.getElementById("footer-condition-text");
+    const wrapper = document.getElementById("result-ticker-wrapper");
+    const btnSpin = document.getElementById("btn-spin-roulette");
+    const btnReroll = document.getElementById("btn-reroll-roulette");
+
+    if (!elem || !wrapper) return;
+
+    const { teamIdx, songIdx } = gameState.activeCell;
+    ensureConditionsArrays();
+
+    const baseCond = gameState.frameConditions[songIdx];
+    const teamCond = gameState.teamConditions[teamIdx] ? gameState.teamConditions[teamIdx][songIdx] : null;
+
+    const teamName = gameState.settings.teamNames[teamIdx] || `チーム${teamIdx + 1}`;
+    const penaltyVal = gameState.settings.rerollPenalty !== undefined ? gameState.settings.rerollPenalty : -5;
+
+    if (!baseCond) {
+      elem.textContent = `【第${songIdx + 1}曲目】基本条件は未抽選です（「回す」を押してください）`;
+      if (btnSpin) { btnSpin.style.display = "flex"; btnSpin.style.flex = "3"; btnSpin.style.width = "30%"; }
+      if (btnReroll) { btnReroll.style.display = "none"; }
+    } else {
+      if (teamCond) {
+        elem.textContent = `【第${songIdx + 1}曲目 / ${teamName}専用】${teamCond}`;
+      } else {
+        elem.textContent = `【第${songIdx + 1}曲目 共通条件】${baseCond}`;
+      }
+      if (btnSpin) { btnSpin.style.display = "none"; }
+      if (btnReroll) {
+        btnReroll.style.display = "flex";
+        btnReroll.style.flex = "3";
+        btnReroll.style.width = "30%";
+        btnReroll.textContent = `引き直し (${penaltyVal})`;
+      }
+    }
+
+    elem.classList.remove("scroll");
+    setTimeout(() => {
+      if (elem.scrollWidth > wrapper.clientWidth) {
+        elem.classList.add("scroll");
+      }
+    }, 50);
+  }
+
+  function selectCell(teamIdx, songIdx) {
+    gameState.activeCell = { teamIdx, songIdx };
+    renderScoreTable();
+    renderRouletteTarget();
+    updateFooterConditionDisplay();
+    syncInputFormWithActiveCell();
+  }
+
+  function syncInputFormWithActiveCell() {
+    const { teamIdx, songIdx } = gameState.activeCell;
+    const existing = gameState.scores[teamIdx][songIdx];
+
+    const titleInput = document.getElementById("input-song-title");
+    const saveBtn = document.getElementById("btn-save-score");
+
+    let initialRaw = 90;
+    let initialAvg = 85;
+
+    if (existing) {
+      if (titleInput) titleInput.value = existing.title || "";
+      initialRaw = Math.round(existing.rawScore);
+      initialAvg = Math.round(existing.avgScore);
+      if (saveBtn) saveBtn.textContent = "更新";
+    } else {
+      if (titleInput) titleInput.value = "";
+      initialRaw = 90;
+      initialAvg = 85;
+      if (saveBtn) saveBtn.textContent = "セット";
+    }
+
+    setWheelValue('raw', initialRaw);
+    setWheelValue('avg', initialAvg);
+  }
+
+  function saveScoreInput() {
+    const rawVal = parseFloat(document.getElementById("input-raw-score").value);
+    const avgVal = parseFloat(document.getElementById("input-avg-score").value);
+    const titleVal = document.getElementById("input-song-title").value.trim();
+
+    if (isNaN(rawVal) || isNaN(avgVal)) {
+      alert("素点と全国平均を正しく入力してください。");
+      return;
+    }
+
+    const { teamIdx, songIdx } = gameState.activeCell;
+
+    const effCond = getEffectiveCondition(teamIdx, songIdx) || "（条件未指定）";
+    const conditionToSave = effCond;
+
+    gameState.scores[teamIdx][songIdx] = {
+      rawScore: Math.round(rawVal),
+      avgScore: Math.round(avgVal),
+      title: titleVal,
+      condition: conditionToSave
+    };
+
+    const res = calculateFrameResult(teamIdx, songIdx);
+
+    saveState();
+    advanceToNextUnfilledCell();
+    renderApp();
+    syncInputFormWithActiveCell();
+
+    if (res) {
+      if (res.isStrike) {
+        let isConsecutive = false;
+        if (songIdx > 0) {
+          const prevRes = calculateFrameResult(teamIdx, songIdx - 1);
+          if (prevRes && prevRes.isStrike) {
+            isConsecutive = true;
+          }
+        }
+        triggerEffect("strike", isConsecutive);
+      } else if (res.isSpare) {
+        triggerEffect("spare");
+      }
+    }
+  }
+
+  let effectTimer = null;
+  let strikeInterval = null;
+  let animInterval = null;
+
+  function triggerEffect(type, isConsecutive = false) {
+    const overlay = document.getElementById("effect-overlay");
+    const textElem = document.getElementById("effect-text");
+    const strikeImg = document.getElementById("strike-img");
+    if (!overlay || !textElem) return;
+
+    clearTimeout(effectTimer);
+    if (strikeInterval) clearInterval(strikeInterval);
+    if (animInterval) clearInterval(animInterval);
+    if (strikeImg) strikeImg.classList.remove("shake");
+
+    overlay.className = "effect-overlay";
+    void overlay.offsetWidth;
+
+    if (type === "strike") {
+      if (strikeImg) {
+        let isImage1 = true;
+        strikeImg.src = "1.jpg";
+        overlay.classList.add("strike-anim", "active");
+
+        strikeInterval = setInterval(() => {
+          isImage1 = !isImage1;
+          strikeImg.src = isImage1 ? "1.jpg" : "2.jpg";
+        }, 100);
+
+        setTimeout(() => {
+          if (strikeInterval) clearInterval(strikeInterval);
+          strikeImg.src = "3.jpg";
+
+          if (isConsecutive) {
+            strikeImg.classList.add("shake");
+          }
+        }, 2000);
+
+        effectTimer = setTimeout(() => {
+          overlay.className = "effect-overlay";
+          strikeImg.classList.remove("shake");
+        }, 3000);
+      }
+    } else if (type === "spare") {
+      if (strikeImg) {
+        const spareFrames = ["4.jpg", "5.jpg", "6.jpg", "5.jpg"];
+        let frameIndex = 0;
+
+        strikeImg.src = spareFrames[0];
+        overlay.classList.add("spare-anim", "active");
+
+        animInterval = setInterval(() => {
+          frameIndex = (frameIndex + 1) % spareFrames.length;
+          strikeImg.src = spareFrames[frameIndex];
+        }, 100);
+
+        effectTimer = setTimeout(() => {
+          if (animInterval) clearInterval(animInterval);
+          overlay.className = "effect-overlay";
+        }, 3000);
+      }
+    }
+  }
+
+  function advanceToNextUnfilledCell() {
+    const { teamCount, songCount } = gameState.settings;
+    for (let s = 0; s < songCount; s++) {
+      for (let t = 0; t < teamCount; t++) {
+        if (!gameState.scores[t][s]) {
+          gameState.activeCell = { teamIdx: t, songIdx: s };
+          return;
+        }
+      }
+    }
+  }
+
+  /* ------------------------------------------
+     選曲条件ルーレット・引き直し制御
+     ------------------------------------------ */
+  let isSpinning = false;
+
+  function openAndSpinRoulette() {
+    const { songIdx } = gameState.activeCell;
+    ensureConditionsArrays();
+
+    if (gameState.frameConditions[songIdx]) {
+      alert("この曲の基本条件は既に決定されています。変更したい場合は「引き直し」をご利用ください。");
+      return;
+    }
+
+    currentSpinContext = {
+      mode: "base",
+      teamIdx: gameState.activeCell.teamIdx,
+      songIdx: songIdx
+    };
+
+    const modalTitle = document.getElementById("roulette-modal-title");
+    if (modalTitle) modalTitle.textContent = `🎰 第${songIdx + 1}曲目 基本条件ルーレット`;
+
+    openModal("roulette-modal");
+    runRouletteSpinInModal();
+  }
+
+  function runRouletteSpinInModal() {
+    if (isSpinning) return;
+
+    conditionsList = fetchConditions();
+
+    if (!Array.isArray(conditionsList) || conditionsList.length === 0) {
+      alert("選曲条件が登録されていません。");
+      return;
+    }
+
+    const usedConditions = loadUsedConditions();
+
+    const availableConditions = conditionsList.filter(
+      condition => !usedConditions.includes(condition)
+    );
+
+    if (availableConditions.length === 0) {
+      alert("このゲームで使用できる選曲条件がなくなりました。");
+      return;
+    }
+
+    isSpinning = true;
+
+    const reelWindow = document.getElementById("reel-window");
+    const reelText = document.getElementById("reel-text");
+    const closeBtn = document.getElementById("btn-modal-spin-close");
+
+    if (closeBtn) {
+      closeBtn.style.display = "none";
+    }
+
+    if (reelWindow) {
+      reelWindow.classList.add("spinning");
+    }
+
+    let counter = 0;
+
+    const interval = setInterval(() => {
+      const randomItem = conditionsList[Math.floor(Math.random() * conditionsList.length)];
+      if (reelText) reelText.textContent = randomItem;
+
+      counter++;
+
+      if (counter > 20) {
+        clearInterval(interval);
+
+        if (reelWindow) reelWindow.classList.remove("spinning");
+
+        const finalSelected = availableConditions[Math.floor(Math.random() * availableConditions.length)];
+
+        if (reelText) reelText.textContent = finalSelected;
+
+        ensureConditionsArrays();
+
+        if (currentSpinContext.mode === "base") {
+          gameState.frameConditions[currentSpinContext.songIdx] = finalSelected;
+        } else if (currentSpinContext.mode === "reroll") {
+          gameState.teamConditions[currentSpinContext.teamIdx][currentSpinContext.songIdx] = finalSelected;
+        }
+
+        gameState.currentCondition = finalSelected;
+        markConditionAsUsed(finalSelected);
+
+        isSpinning = false;
+
+        saveState();
+        renderApp();
+
+        if (closeBtn) closeBtn.style.display = "block";
+      }
+    }, 80);
+  }
+
+  function openRerollModal() {
+    if (isSpinning) return;
+    ensureRerollPenalties();
+    ensureConditionsArrays();
+
+    const { teamIdx, songIdx } = gameState.activeCell;
+    const baseCond = gameState.frameConditions[songIdx];
+
+    if (!baseCond) {
+      alert("基本条件がまだ決定されていません。先に「回す」ボタンで条件を決定してください。");
+      return;
+    }
+
+    const penalty = gameState.settings.rerollPenalty !== undefined ? gameState.settings.rerollPenalty : -5;
+    const msgElem = document.getElementById("reroll-confirm-msg");
+    if (msgElem) {
+      msgElem.textContent = `引き直すと ${penalty}ポイントのペナルティが加算されますがよろしいですか？`;
+    }
+
+    const selectElem = document.getElementById("reroll-team-select");
+    selectElem.innerHTML = "";
+
+    const { teamCount, teamNames } = gameState.settings;
+    for (let t = 0; t < teamCount; t++) {
+      const opt = document.createElement("option");
+      opt.value = t;
+      opt.textContent = teamNames[t] || `チーム${t + 1}`;
+      if (t === teamIdx) {
+        opt.selected = true;
+      }
+      selectElem.appendChild(opt);
+    }
+
+    openModal("reroll-modal");
+  }
+
+  function executeReroll() {
+    if (isSpinning) return;
+
+    const selectElem = document.getElementById("reroll-team-select");
+    const selectedTeamIdx = parseInt(selectElem.value, 10);
+
+    ensureRerollPenalties();
+    const penalty = gameState.settings.rerollPenalty !== undefined ? gameState.settings.rerollPenalty : -5;
+    gameState.rerollPenalties[selectedTeamIdx] = (gameState.rerollPenalties[selectedTeamIdx] || 0) + penalty;
+
+    currentSpinContext = {
+      mode: "reroll",
+      teamIdx: selectedTeamIdx,
+      songIdx: gameState.activeCell.songIdx
+    };
+
+    closeModal("reroll-modal");
+
+    const modalTitle = document.getElementById("roulette-modal-title");
+    const teamName = gameState.settings.teamNames[selectedTeamIdx] || `チーム${selectedTeamIdx + 1}`;
+    if (modalTitle) modalTitle.textContent = `🎰 第${gameState.activeCell.songIdx + 1}曲目 引き直し (${teamName})`;
+
+    openModal("roulette-modal");
+    runRouletteSpinInModal();
+  }
+
+  function openSettingsModal() {
+    const { teamCount, songCount, teamNames, spareDiff, rerollPenalty, finalStrikeBonus, finalSpareBonus, theme } = gameState.settings;
+
+    document.getElementById("setting-team-count").value = teamCount;
+    document.getElementById("setting-song-count").value = songCount;
+    document.getElementById("setting-spare-diff").value = spareDiff;
+    document.getElementById("setting-reroll-penalty").value = rerollPenalty !== undefined ? rerollPenalty : -5;
+    document.getElementById("setting-final-strike").value = finalStrikeBonus;
+    document.getElementById("setting-final-spare").value = finalSpareBonus;
+    document.getElementById("setting-theme").value = theme || "dark";
+
+    renderTeamNameInputs(teamCount, teamNames);
+
+    document.getElementById("setting-team-count").onchange = (e) => {
+      const newCount = Math.min(5, Math.max(1, parseInt(e.target.value) || 1));
+      renderTeamNameInputs(newCount, teamNames);
+    };
+
+    openModal("settings-modal");
+  }
+
+  function renderTeamNameInputs(count, existingNames) {
+    const container = document.getElementById("team-names-container");
+    container.innerHTML = "<label>チーム名:</label>";
+    for (let i = 0; i < count; i++) {
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "form-control team-name-input";
+      input.style.marginBottom = "6px";
+      input.value = existingNames[i] || `チーム${String.fromCharCode(65 + i)}`;
+      container.appendChild(input);
+    }
+  }
+
+  function saveSettings() {
+    const newTeamCount = parseInt(document.getElementById("setting-team-count").value);
+    const newSongCount = parseInt(document.getElementById("setting-song-count").value);
+    const newSpareDiff = parseFloat(document.getElementById("setting-spare-diff").value);
+    const newRerollPenalty = parseFloat(document.getElementById("setting-reroll-penalty").value);
+    const newFinalStrike = parseFloat(document.getElementById("setting-final-strike").value);
+    const newFinalSpare = parseFloat(document.getElementById("setting-final-spare").value);
+    const newTheme = document.getElementById("setting-theme").value || "dark";
+
+    const nameInputs = document.querySelectorAll(".team-name-input");
+    const newTeamNames = Array.from(nameInputs).map((inp, idx) => inp.value.trim() || `チーム${idx + 1}`);
+
+    let hasScores = false;
+    for (let t = 0; t < gameState.scores.length; t++) {
+      for (let s = 0; s < (gameState.scores[t] ? gameState.scores[t].length : 0); s++) {
+        if (gameState.scores[t][s]) { hasScores = true; break; }
+      }
+    }
+
+    const penaltyVal = isNaN(newRerollPenalty) ? -5 : newRerollPenalty;
+
+    const isRuleChanged =
+      newTeamCount !== gameState.settings.teamCount ||
+      newSongCount !== gameState.settings.songCount ||
+      newSpareDiff !== gameState.settings.spareDiff ||
+      penaltyVal !== gameState.settings.rerollPenalty ||
+      newFinalStrike !== gameState.settings.finalStrikeBonus ||
+      newFinalSpare !== gameState.settings.finalSpareBonus;
+
+    if (hasScores && isRuleChanged) {
+      if (!confirm("入力されたスコアは消去されますがよろしいですか？")) {
+        return;
+      }
+      gameState.settings = {
+        teamCount: newTeamCount,
+        songCount: newSongCount,
+        teamNames: newTeamNames,
+        spareDiff: newSpareDiff,
+        rerollPenalty: penaltyVal,
+        finalStrikeBonus: newFinalStrike,
+        finalSpareBonus: newFinalSpare,
+        theme: newTheme
+      };
+      initEmptyScores();
+    } else {
+      gameState.settings = {
+        teamCount: newTeamCount,
+        songCount: newSongCount,
+        teamNames: newTeamNames,
+        spareDiff: newSpareDiff,
+        rerollPenalty: penaltyVal,
+        finalStrikeBonus: newFinalStrike,
+        finalSpareBonus: newFinalSpare,
+        theme: newTheme
+      };
+      if (gameState.scores.length !== newTeamCount || (gameState.scores[0] && gameState.scores[0].length !== newSongCount)) {
+        initEmptyScores();
+      }
+    }
+
+    ensureRerollPenalties();
+    ensureConditionsArrays();
+    applyTheme();
+    saveState();
+    closeModal("settings-modal");
+    renderApp();
+    syncInputFormWithActiveCell();
+  }
+
+  function confirmClearScores() {
+    if (confirm("現在の全チーム・全曲の入力スコアを削除してリセットしますか？（設定は保持されます）")) {
+      initEmptyScores();
+      localStorage.removeItem(USED_CONDITIONS_KEY);
+      saveState();
+      renderApp();
+      syncInputFormWithActiveCell();
+    }
+  }
+
+  function openBreakdownModal() {
+    ensureRerollPenalties();
+    ensureConditionsArrays();
+    const container = document.getElementById("breakdown-body");
+    const { teamCount, songCount, teamNames } = gameState.settings;
+
+    let html = "";
+
+    for (let t = 0; t < teamCount; t++) {
+      const teamName = teamNames[t] || `チーム${t + 1}`;
+      let totalRaw = 0;
+      let filledSongs = 0;
+      let teamFinalTotal = 0;
+
+      html += `<div style="font-weight:bold; color:var(--accent-yellow); margin-top:8px;">■ ${teamName}</div>`;
+      html += `
+        <table class="breakdown-table">
+          <thead>
+            <tr>
+              <th>曲</th>
+              <th>曲名/条件</th>
+              <th>素点</th>
+              <th>平均</th>
+              <th>差</th>
+              <th>判定</th>
+              <th>基本点</th>
+              <th>ボーナス</th>
+              <th>小計</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      for (let s = 0; s < songCount; s++) {
+        const data = gameState.scores[t][s];
+        const res = calculateFrameResult(t, s);
+        const condText = (data && data.condition) ? data.condition : (getEffectiveCondition(t, s) || "（条件未設定）");
+
+        if (data && res) {
+          totalRaw += data.rawScore;
+          filledSongs++;
+          teamFinalTotal += res.subtotal;
+
+          html += `
+            <tr>
+              <td>${s + 1}</td>
+              <td style="text-align:left;">
+                <div><b>${data.title || "（曲名未入力）"}</b></div>
+                <div style="font-size:0.75rem; color:var(--text-sub);">${condText}</div>
+              </td>
+              <td>${Math.round(res.rawScore)}</td>
+              <td>${Math.round(res.avgScore)}</td>
+              <td>${res.displayDiff}</td>
+              <td>${res.mark}</td>
+              <td>${Math.round(res.baseScore)}</td>
+              <td>${res.isWaiting ? "次曲待ち" : Math.round(res.bonus)}</td>
+              <td><b>${res.isWaiting ? Math.round(res.baseScore) : Math.round(res.subtotal)}</b></td>
+            </tr>
+          `;
+        } else {
+          html += `
+            <tr>
+              <td>${s + 1}</td>
+              <td style="text-align:left;">
+                <div style="color:var(--text-sub);">-</div>
+                <div style="font-size:0.75rem; color:var(--text-sub);">${condText}</div>
+              </td>
+              <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+            </tr>
+          `;
+        }
+      }
+
+      const avgRaw = filledSongs > 0 ? (totalRaw / filledSongs).toFixed(1) : "-";
+      const penalty = gameState.rerollPenalties[t] || 0;
+      const teamFinalTotalWithPenalty = teamFinalTotal + penalty;
+
+      html += `
+          </tbody>
+        </table>
+        <div style="display:flex; flex-direction:column; gap:6px; font-size:0.85rem; background:var(--summary-bg); padding:8px 12px; border-radius:6px; margin-top:6px;">
+          <div style="display:flex; justify-content:space-between;">
+            <span>素点合計: <b>${Math.round(totalRaw)}点</b></span>
+            <span>素点平均: <b>${avgRaw}点</b></span>
+            <span>曲計算点合計: <b>${Math.round(teamFinalTotal)}点</b></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; border-top:1px dashed var(--border-color); padding-top:6px; margin-top:2px;">
+            <span>引き直しペナルティ: <b style="color:var(--accent-orange);">${penalty}点</b></span>
+            <span>最終計算点: <b style="color:var(--accent-cyan); font-size:0.95rem;">${Math.round(teamFinalTotalWithPenalty)}点</b></span>
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+    openModal("breakdown-modal");
+  }
+
+  function checkAutoFinished() {
+    const { teamCount, songCount } = gameState.settings;
+    for (let t = 0; t < teamCount; t++) {
+      for (let s = 0; s < songCount; s++) {
+        if (!gameState.scores[t][s]) return;
+      }
+    }
+
+    if (!gameState.isFinished) {
+      gameState.isFinished = true;
+      saveState();
+      openResultModal();
+    }
+  }
+
+  function openResultModal() {
+    ensureRerollPenalties();
+    const { teamCount, songCount, teamNames } = gameState.settings;
+    const container = document.getElementById("result-body");
+
+    const teamResults = [];
+    let sumAllTotal = 0;
+
+    for (let t = 0; t < teamCount; t++) {
+      let finalScore = 0;
+      for (let s = 0; s < songCount; s++) {
+        const res = calculateFrameResult(t, s);
+        if (res) finalScore += res.subtotal;
+      }
+      const penalty = gameState.rerollPenalties[t] || 0;
+      finalScore += penalty;
+
+      teamResults.push({
+        teamIdx: t,
+        name: teamNames[t] || `チーム${t + 1}`,
+        score: finalScore
+      });
+      sumAllTotal += finalScore;
+    }
+
+    teamResults.sort((a, b) => b.score - a.score);
+    let rank = 1;
+    for (let i = 0; i < teamResults.length; i++) {
+      if (i > 0 && teamResults[i].score < teamResults[i - 1].score) {
+        rank = i + 1;
+      }
+      teamResults[i].rank = rank;
+    }
+
+    const topScore = teamResults[0].score;
+    const avgAllTeams = sumAllTotal / teamCount;
+
+    let html = "";
+
+    if (teamCount === 2) {
+      const isDraw = teamResults[0].score === teamResults[1].score;
+      const diff = Math.abs(teamResults[0].score - teamResults[1].score);
+
+      html += `<div style="text-align:center; font-size:1.3rem; margin-bottom:14px; font-weight:bold; color:var(--accent-yellow);">`;
+      if (isDraw) {
+        html += `🤝 引き分け！ (${Math.round(teamResults[0].score)}点)`;
+      } else {
+        html += `👑 1位: ${teamResults[0].name} (${Math.round(teamResults[0].score)}点)<br>`;
+        html += `<span style="font-size:0.95rem; color:var(--text-sub);">2位: ${teamResults[1].name} (${Math.round(teamResults[1].score)}点) / 点差: ${Math.round(diff)}点</span>`;
+      }
+      html += `</div>`;
+    } else {
+      html += `<div style="font-size:0.95rem; margin-bottom:10px;">全チーム平均点: <b>${avgAllTeams.toFixed(1)}点</b></div>`;
+      html += `<table class="breakdown-table"><thead><tr><th>順位</th><th>チーム名</th><th>最終点</th><th>1位差</th><th>平均差</th></tr></thead><tbody>`;
+
+      teamResults.forEach(item => {
+        const diffTop = Math.round(topScore - item.score);
+        const diffAvg = Math.round(item.score - avgAllTeams);
+        html += `
+          <tr>
+            <td><b>${item.rank}位</b></td>
+            <td>${item.name}</td>
+            <td style="color:var(--accent-cyan); font-weight:bold;">${Math.round(item.score)}</td>
+            <td>-${diffTop}</td>
+            <td>${diffAvg >= 0 ? "+" + diffAvg : diffAvg}</td>
+          </tr>
+        `;
+      });
+      html += `</tbody></table>`;
+    }
+
+    container.innerHTML = html;
+    openModal("result-modal");
+  }
+
+  function exportPDF() {
+    ensureRerollPenalties();
+    ensureConditionsArrays();
+
+    const { teamCount, songCount, teamNames } = gameState.settings;
+
+    const teamResults = [];
+    let sumAllTotal = 0;
+
+    for (let t = 0; t < teamCount; t++) {
+      let finalScore = 0;
+      for (let s = 0; s < songCount; s++) {
+        const res = calculateFrameResult(t, s);
+        if (res) finalScore += res.subtotal;
+      }
+      const penalty = gameState.rerollPenalties[t] || 0;
+      finalScore += penalty;
+
+      teamResults.push({
+        teamIdx: t,
+        name: teamNames[t] || `チーム${t + 1}`,
+        score: finalScore
+      });
+      sumAllTotal += finalScore;
+    }
+
+    teamResults.sort((a, b) => b.score - a.score);
+    let rank = 1;
+    for (let i = 0; i < teamResults.length; i++) {
+      if (i > 0 && teamResults[i].score < teamResults[i - 1].score) {
+        rank = i + 1;
+      }
+      teamResults[i].rank = rank;
+    }
+
+    const topScore = teamResults.length > 0 ? teamResults[0].score : 0;
+    const avgAllTeams = teamCount > 0 ? sumAllTotal / teamCount : 0;
+
+    const printArea = document.createElement("div");
+    printArea.style.padding = "15px";
+    printArea.style.fontFamily = "'Yu Mincho', 'Hiragino Mincho ProN', 'MS PMincho', serif";
+    printArea.style.color = "#111";
+    printArea.style.background = "#fff";
+    printArea.style.width = "100%";
+    printArea.style.boxSizing = "border-box";
+
+    const dateStr = new Date().toLocaleDateString("ja-JP", {
+      year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"
+    });
+
+    let pdfHTML = `
+      <div style="border: 3px double #000; padding: 10px; margin-bottom: 12px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 8px;">
+          <div style="font-size: 10px; letter-spacing: 1px;">OFFICIAL SCORE SHEET</div>
+          <div style="font-size: 22px; font-weight: bold; letter-spacing: 4px; text-align: center;">カラオケボウリング 成績表</div>
+          <div style="font-size: 10px;">発行日時: ${dateStr}</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 10px;">
+          <span>会場: カラオケルーム</span>
+          <span>参加チーム数: ${teamCount} チーム</span>
+          <span>総フレーム数: ${songCount} 曲</span>
+        </div>
+      </div>
+    `;
+
+    pdfHTML += `
+      <div style="border: 2px solid #000; margin-bottom: 16px; padding: 8px; background-color: #fafafa;">
+        <div style="text-align: center; font-size: 14px; font-weight: bold; letter-spacing: 2px; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 8px;">【 終 了 成 績 】</div>
+        <div style="text-align: right; font-size: 10px; margin-bottom: 6px;">全チーム平均点：<b>${avgAllTeams.toFixed(1)} 点</b></div>
+    `;
+
+    if (teamCount === 2) {
+      const first = teamResults[0];
+      const second = teamResults[1];
+      const isDraw = first.score === second.score;
+      const diff = Math.abs(first.score - second.score);
+
+      if (isDraw) {
+        pdfHTML += `<div style="text-align: center; font-size: 14px; font-weight: bold; margin: 6px 0; color: #a61c1c;">《 引き分け (同点) 》</div>`;
+      } else {
+        pdfHTML += `<div style="text-align: center; font-size: 14px; font-weight: bold; margin: 6px 0;">優勝：${first.name} （${Math.round(first.score)} 点）</div>`;
+      }
+
+      pdfHTML += `
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px; border: 1px solid #000; text-align: center;">
+          <thead>
+            <tr style="background: #e0e0e0; border-bottom: 1px solid #000;">
+              <th style="padding: 4px; border-right: 1px solid #000; width: 15%;">順位</th>
+              <th style="padding: 4px; border-right: 1px solid #000; text-align: left;">チーム名</th>
+              <th style="padding: 4px; border-right: 1px solid #000; width: 20%;">最終点</th>
+              <th style="padding: 4px; width: 20%;">トップ差</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px dashed #666;">
+              <td style="padding: 4px; border-right: 1px solid #000; font-weight: bold;">第1位</td>
+              <td style="padding: 4px; border-right: 1px solid #000; text-align: left;">${first.name}</td>
+              <td style="padding: 4px; border-right: 1px solid #000; font-weight: bold; text-align: right;">${Math.round(first.score)}</td>
+              <td style="padding: 4px; text-align: right;">-</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px; border-right: 1px solid #000; font-weight: bold;">第2位</td>
+              <td style="padding: 4px; border-right: 1px solid #000; text-align: left;">${second.name}</td>
+              <td style="padding: 4px; border-right: 1px solid #000; font-weight: bold; text-align: right;">${Math.round(second.score)}</td>
+              <td style="padding: 4px; text-align: right;">-${Math.round(diff)}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+    } else {
+      pdfHTML += `
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px; border: 1px solid #000;">
+          <thead>
+            <tr style="background: #e0e0e0; border-bottom: 1px solid #000;">
+              <th style="padding: 4px; border-right: 1px solid #000; width: 10%; text-align: center;">順位</th>
+              <th style="padding: 4px; border-right: 1px solid #000; text-align: left;">チーム名</th>
+              <th style="padding: 4px; border-right: 1px solid #000; width: 18%; text-align: right;">最終点</th>
+              <th style="padding: 4px; border-right: 1px solid #000; width: 18%; text-align: right;">トップ差</th>
+              <th style="padding: 4px; width: 18%; text-align: right;">平均差</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      teamResults.forEach((item, index) => {
+        const diffTop = Math.round(topScore - item.score);
+        const diffAvg = Math.round(item.score - avgAllTeams);
+        const avgDiffText = diffAvg >= 0 ? `+${diffAvg}` : `${diffAvg}`;
+        const borderStyle = index === teamResults.length - 1 ? "" : "border-bottom: 1px dashed #666;";
+
+        pdfHTML += `
+          <tr style="${borderStyle}">
+            <td style="padding: 4px; border-right: 1px solid #000; text-align: center; font-weight: bold;">第${item.rank}位</td>
+            <td style="padding: 4px; border-right: 1px solid #000;">${item.name}</td>
+            <td style="padding: 4px; border-right: 1px solid #000; text-align: right; font-weight: bold;">${Math.round(item.score)}</td>
+            <td style="padding: 4px; border-right: 1px solid #000; text-align: right;">${diffTop === 0 ? "-" : `-${diffTop}`}</td>
+            <td style="padding: 4px; text-align: right;">${avgDiffText}</td>
+          </tr>
+        `;
+      });
+
+      pdfHTML += `</tbody></table>`;
+    }
+
+    pdfHTML += `</div>`;
+
+    for (let t = 0; t < teamCount; t++) {
+      const tName = teamNames[t] || `チーム${t + 1}`;
+      let totalScore = 0;
+
+      pdfHTML += `
+        <div style="margin-bottom: 16px; page-break-inside: avoid; border: 1px solid #000; padding: 6px;">
+          <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 3px; margin-bottom: 6px; font-weight: bold; font-size: 11px;">
+            <span>チーム名: 【 ${tName} 】</span>
+            <span>スコア明細</span>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; border: 1px solid #000;">
+            <thead>
+              <tr style="background: #eee; border-bottom: 1px solid #000;">
+                <th style="padding: 3px; border-right: 1px solid #000; width: 6%; text-align: center;">曲</th>
+                <th style="padding: 3px; border-right: 1px solid #000; text-align: left;">楽曲タイトル / 選曲条件</th>
+                <th style="padding: 3px; border-right: 1px solid #000; width: 11%; text-align: right;">素点</th>
+                <th style="padding: 3px; border-right: 1px solid #000; width: 11%; text-align: right;">平均</th>
+                <th style="padding: 3px; border-right: 1px solid #000; width: 9%; text-align: center;">判定</th>
+                <th style="padding: 3px; border-right: 1px solid #000; width: 11%; text-align: right;">基本点</th>
+                <th style="padding: 3px; border-right: 1px solid #000; width: 11%; text-align: right;">加算点</th>
+                <th style="padding: 3px; width: 13%; text-align: right;">計</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      for (let s = 0; s < songCount; s++) {
+        const res = calculateFrameResult(t, s);
+        const data = gameState.scores[t][s];
+        const condText = (data && data.condition) ? data.condition : (getEffectiveCondition(t, s) || "-");
+        const isLast = s === songCount - 1;
+        const borderBottom = isLast ? "" : "border-bottom: 1px solid #ccc;";
+
+        if (res && data) {
+          totalScore += res.subtotal;
+          pdfHTML += `
+            <tr style="${borderBottom}">
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: center;">${s + 1}</td>
+              <td style="padding: 3px; border-right: 1px solid #000;">
+                <div><b>${data.title || "-"}</b></div>
+                <div style="font-size:8px; color:#555;">${condText}</div>
+              </td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: right;">${Math.round(res.rawScore)}</td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: right;">${Math.round(res.avgScore)}</td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: center; font-weight: bold;">[ ${res.mark} ]</td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: right;">${Math.round(res.baseScore)}</td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: right;">${Math.round(res.bonus)}</td>
+              <td style="padding: 3px; text-align: right; font-weight: bold;">${Math.round(res.subtotal)}</td>
+            </tr>
+          `;
+        } else {
+          pdfHTML += `
+            <tr style="${borderBottom}">
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: center;">${s + 1}</td>
+              <td style="padding: 3px; border-right: 1px solid #000;">
+                <div>-</div>
+                <div style="font-size:8px; color:#555;">${condText}</div>
+              </td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: right;">-</td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: right;">-</td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: center;">-</td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: right;">-</td>
+              <td style="padding: 3px; border-right: 1px solid #000; text-align: right;">-</td>
+              <td style="padding: 3px; text-align: right;">-</td>
+            </tr>
+          `;
+        }
+      }
+
+      const penalty = gameState.rerollPenalties[t] || 0;
+      const finalScoreWithPenalty = totalScore + penalty;
+
+      pdfHTML += `
+            </tbody>
+          </table>
+
+          <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10.5px; margin-top: 6px; padding: 2px 4px; background-color: #f5f5f5; border: 1px solid #000;">
+            <span>減点（引き直しペナルティ）: ${penalty} 点</span>
+            <span>合計獲得得点: ${Math.round(finalScoreWithPenalty)} 点</span>
+          </div>
+        </div>
+      `;
+    }
+
+    printArea.innerHTML = pdfHTML;
+
+    const opt = {
+      margin: [8, 8, 8, 8],
+      filename: `karaoke_bowling_score_${Date.now()}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+    };
+
+    html2pdf().set(opt).from(printArea).save();
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add("active"); }
+  function closeModal(id) { document.getElementById(id).classList.remove("active"); }
+
+  function openConditionsEditor() {
+    window.location.href = "conditions.html";
+  }
+</script>
+</body>
+</html>
