@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カラオケボウリング｜選曲条件管理</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #111;
+    color: #fff;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Helvetica Neue",
+        "Hiragino Kaku Gothic ProN",
+        "Yu Gothic",
+        Meiryo,
+        sans-serif;
+}
+
+.container {
+    width: min(900px, 100%);
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* =========================
+   ヘッダー
+========================= */
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.back-button {
+    border: none;
+    background: #333;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.back-button:active {
+    transform: scale(0.97);
+}
+
+/* =========================
+   データ管理
+========================= */
+
+.data-box {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.data-box h2 {
+    margin: 0 0 12px;
+    font-size: 17px;
+}
+
+.data-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.data-buttons button {
+    flex: 1;
+    min-width: 130px;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+}
+
+.export-button {
+    background: #1769aa;
+}
+
+.import-button {
+    background: #555;
+}
+
+.reset-button {
+    background: #8b3030;
+}
+
+.data-buttons button:active {
+    transform: scale(0.98);
+}
+
+#fileInput {
+    display: none;
+}
+
+.status {
+    margin-top: 10px;
+    min-height: 20px;
+    color: #aaa;
+    font-size: 13px;
+}
+
+/* =========================
+   追加フォーム
+========================= */
+
+.add-box {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.add-box h2 {
+    margin: 0 0 14px;
+    font-size: 17px;
+}
+
+.form-row {
+    display: flex;
+    gap: 8px;
+}
+
+.form-row input,
+.form-row select {
+    flex: 1;
+    min-width: 0;
+    background: #292929;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 15px;
+}
+
+.form-row button {
+    flex: 0 0 auto;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    background: #2e8b57;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* =========================
+   カテゴリ
+========================= */
+
+.category {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 15px;
+    background: #242424;
+}
+
+.category-title {
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.category-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.category-actions button {
+    border: none;
+    background: #444;
+    color: #fff;
+    border-radius: 6px;
+    padding: 6px 9px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.category-actions .delete-category {
+    background: #713535;
+}
+
+/* =========================
+   条件リスト
+========================= */
+
+.condition-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.condition-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 12px;
+    border-top: 1px solid #333;
+}
+
+.condition-text {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.condition-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.condition-actions button {
+    border: none;
+    background: #444;
+    color: #fff;
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.condition-actions .delete {
+    background: #713535;
+}
+
+.empty {
+    padding: 18px;
+    color: #888;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* =========================
+   カテゴリ追加
+========================= */
+
+.category-add {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.category-add input {
+    flex: 1;
+    background: #292929;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 15px;
+}
+
+.category-add button {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    background: #555;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* =========================
+   ダイアログ
+========================= */
+
+dialog {
+    width: min(500px, calc(100% - 30px));
+    border: 1px solid #444;
+    border-radius: 12px;
+    background: #1d1d1d;
+    color: #fff;
+    padding: 20px;
+}
+
+dialog::backdrop {
+    background: rgba(0,0,0,0.7);
+}
+
+dialog h3 {
+    margin: 0 0 15px;
+}
+
+dialog input,
+dialog textarea,
+dialog select {
+    width: 100%;
+    background: #292929;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 15px;
+    margin-bottom: 12px;
+}
+
+dialog textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.dialog-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.dialog-buttons button {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.dialog-cancel {
+    background: #444;
+    color: #fff;
+}
+
+.dialog-save {
+    background: #2e8b57;
+    color: #fff;
+}
+
+/* =========================
+   スマホ
+========================= */
+
+@media (max-width: 600px) {
+
+    .container {
+        padding: 14px;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-row button {
+        width: 100%;
+    }
+
+    .condition-item {
+        align-items: flex-start;
+    }
+
+    .condition-actions {
+        flex-direction: column;
+    }
+
+    .condition-actions button {
+        min-width: 44px;
+    }
+
+    .category-header {
+        align-items: flex-start;
+    }
+
+    .category-actions {
+        flex-shrink: 0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>選曲条件管理</h1>
+
+        <button class="back-button" onclick="goBack()">
+            ← 戻る
+        </button>
+    </div>
+
+
+    <!-- =========================
+         データ管理
+    ========================== -->
+
+    <div class="data-box">
+
+        <h2>条件データの共有</h2>
+
+        <div class="data-buttons">
+
+            <button
+                class="export-button"
+                onclick="exportConditions()">
+                条件を書き出す
+            </button>
+
+            <button
+                class="import-button"
+                onclick="document.getElementById('fileInput').click()">
+                条件を読み込む
+            </button>
+
+            <button
+                class="reset-button"
+                onclick="resetConditions()">
+                初期状態に戻す
+            </button>
+
+        </div>
+
+        <input
+            type="file"
+            id="fileInput"
+            accept=".txt,.json,text/plain,application/json"
+            onchange="importConditions(event)">
+
+        <div id="status" class="status"></div>
+
+    </div>
+
+
+    <!-- =========================
+         条件追加
+    ========================== -->
+
+    <div class="add-box">
+
+        <h2>条件を追加</h2>
+
+        <div class="form-row">
+
+            <select id="addCategory"></select>
+
+            <input
+                type="text"
+                id="newCondition"
+                placeholder="例：90点以上を取ったことがない曲">
+
+            <button onclick="addCondition()">
+                追加
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         カテゴリ追加
+    ========================== -->
+
+    <div class="category-add">
+
+        <input
+            type="text"
+            id="newCategory"
+            placeholder="新しいカテゴリ名">
+
+        <button onclick="addCategory()">
+            カテゴリ追加
+        </button>
+
+    </div>
+
+
+    <!-- =========================
+         条件一覧
+    ========================== -->
+
+    <div id="conditionContainer"></div>
+
+</div>
+
+
+<!-- =========================
+     編集ダイアログ
+========================== -->
+
+<dialog id="editDialog">
+
+    <h3>条件を編集</h3>
+
+    <textarea id="editCondition"></textarea>
+
+    <select id="editCategory"></select>
+
+    <div class="dialog-buttons">
+
+        <button
+            class="dialog-cancel"
+            onclick="closeEditDialog()">
+            キャンセル
+        </button>
+
+        <button
+            class="dialog-save"
+            onclick="saveEdit()">
+            保存
+        </button>
+
+    </div>
+
+</dialog>
+
+
+<script>
+
+/* =========================================================
+   設定
+========================================================= */
+
+const STORAGE_KEY = "KARAOKE_BOWLING_CONDITIONS_V1";
+
+/* =========================================================
+   初期データ
+========================================================= */
+
+const DEFAULT_DATA = {
+    version: 1,
+
+    categories: [
+
+        /* =========================
+           その他
+        ========================== */
+
+        {
+            id: "other",
+            name: "その他",
+
+            conditions: [
+                "自由！"
+            ]
+        },
+
+
+        /* =========================
+           アーティスト
+        ========================== */
+
+        {
+            id: "artist",
+            name: "アーティスト",
+
+            conditions: [
+                "男性ボーカルの曲",
+                "女性ボーカルの曲",
+
+                "あ行から始まるアーティスト",
+                "か行から始まるアーティスト",
+                "さ行から始まるアーティスト",
+                "た行から始まるアーティスト",
+                "な行から始まるアーティスト",
+                "は行から始まるアーティスト",
+                "ま行から始まるアーティスト",
+                "や行から始まるアーティスト",
+                "ら行から始まるアーティスト",
+                "わ行から始まるアーティスト",
+
+                "アーティスト名が漢字から始まる",
+                "アーティスト名がカタカナから始まる",
+                "アーティスト名がひらがなから始まる",
+                "アーティスト名がアルファベットから始まる",
+
+                "アーティスト名が5文字以上",
+                "アーティスト名が5文字以下",
+                "アーティスト名が8文字以下",
+
+                "ソロアーティスト",
+                "男女混成グループ",
+                "バンド",
+
+                "アーティスト名に色が入っている",
+
+                "ボカロ曲",
+                "アイドル曲",
+                "芸人もしくはYouTuberの曲"
+            ]
+        },
+
+
+        /* =========================
+           曲名
+        ========================== */
+
+        {
+            id: "title",
+            name: "曲名",
+
+            conditions: [
+                "あ行から始まる曲名",
+                "か行から始まる曲名",
+                "さ行から始まる曲名",
+                "た行から始まる曲名",
+                "な行から始まる曲名",
+                "は行から始まる曲名",
+                "ま行から始まる曲名",
+                "や行から始まる曲名",
+                "ら行から始まる曲名",
+                "わ行から始まる曲名",
+
+                "曲名が漢字のみ",
+                "曲名がひらがなのみ",
+                "曲名がカタカナのみ",
+                "曲名がアルファベットのみ",
+
+                "曲名に漢字を含む",
+                "曲名に数字を含む",
+                "曲名にアルファベットを含む",
+
+                "曲名が5文字以上",
+                "曲名が10文字以上",
+                "曲名が5文字以下",
+                "曲名が8文字以下",
+
+                "曲名に「愛」が入っている",
+                "曲名に「の」が入っている",
+                "曲名に花の名前が入っている",
+                "曲名に長音(ー)が入っている"
+            ]
+        },
+
+
+        /* =========================
+           年代
+        ========================== */
+
+        {
+            id: "era",
+            name: "年代",
+
+            conditions: [
+                "2000年代以前の曲",
+                "2010年代以降の曲",
+                "昭和の曲",
+                "平成の曲",
+                "令和の曲"
+            ]
+        },
+
+
+        /* =========================
+           タイアップ
+        ========================== */
+
+        {
+            id: "tieup",
+            name: "タイアップ",
+
+            conditions: [
+                "アニメの曲",
+                "ドラマの曲",
+                "映画の曲",
+                "CMソング",
+                "本人映像のみ"
+            ]
+        },
+
+
+        /* =========================
+           歌詞
+        ========================== */
+
+        {
+            id: "lyrics",
+            name: "歌詞",
+
+            conditions: [
+                "歌詞に食べ物が出てくる",
+                "歌詞に地名が出てくる",
+                "歌詞に乗り物が出てくる",
+
+                "日本語禁止！(歌詞)",
+                "英文が含まれる歌詞",
+                "英語禁止！(歌詞)"
+            ]
+        },
+
+
+        /* =========================
+           ランキング
+        ========================== */
+
+        {
+            id: "ranking",
+            name: "ランキング",
+
+            conditions: [
+                "月間DAMベスト50から",
+                "なんでもランキング(盛り上がる曲)",
+                "なんでもランキング(急上昇)",
+                "なんでもランキング(歌いやすい曲)"
+            ]
+        },
+
+
+        /* =========================
+           前の人とのつながり
+        ========================== */
+
+        {
+            id: "connection",
+            name: "前の人とのつながり",
+
+            conditions: [
+                "前の人の曲名としりとり",
+                "前の人のアーティスト名としりとり"
+            ]
+        }
+
+    ]
+};
+
+
+/* =========================================================
+   現在編集中のデータ
+========================================================= */
+
+let data = null;
+
+let editingCategoryId = null;
+let editingConditionIndex = null;
+
+
+/* =========================================================
+   初期化
+========================================================= */
+
+function init() {
+
+    loadData();
+
+    render();
+
+}
+
+
+/* =========================================================
+   localStorageから読み込み
+========================================================= */
+
+function loadData() {
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (!saved) {
+
+        data = deepCopy(DEFAULT_DATA);
+
+        saveData();
+
+        return;
+    }
+
+    try {
+
+        const parsed = JSON.parse(saved);
+
+        if (
+            !parsed ||
+            !Array.isArray(parsed.categories)
+        ) {
+            throw new Error("データ形式が正しくありません");
+        }
+
+        data = parsed;
+
+    } catch (error) {
+
+        console.error(error);
+
+        data = deepCopy(DEFAULT_DATA);
+
+        saveData();
+
+        setStatus(
+            "保存データを読み込めなかったため、初期データを使用しました。",
+            true
+        );
+    }
+}
+
+
+/* =========================================================
+   localStorageへ保存
+========================================================= */
+
+function saveData() {
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(data)
+    );
+}
+
+
+/* =========================================================
+   ディープコピー
+========================================================= */
+
+function deepCopy(obj) {
+
+    return JSON.parse(
+        JSON.stringify(obj)
+    );
+}
+
+
+/* =========================================================
+   画面描画
+========================================================= */
+
+function render() {
+
+    renderCategories();
+
+    renderCategorySelects();
+
+}
+
+
+/* =========================================================
+   カテゴリ一覧
+========================================================= */
+
+function renderCategories() {
+
+    const container =
+        document.getElementById("conditionContainer");
+
+    container.innerHTML = "";
+
+
+    if (data.categories.length === 0) {
+
+        container.innerHTML = `
+            <div class="empty">
+                カテゴリがありません。
+            </div>
+        `;
+
+        return;
+    }
+
+
+    data.categories.forEach(category => {
+
+        const categoryElement =
+            document.createElement("div");
+
+        categoryElement.className = "category";
+
+
+        /* -------------------------
+           カテゴリヘッダー
+        ------------------------- */
+
+        const header =
+            document.createElement("div");
+
+        header.className = "category-header";
+
+
+        const title =
+            document.createElement("div");
+
+        title.className = "category-title";
+
+        title.textContent =
+            `${category.name} (${category.conditions.length})`;
+
+
+        const actions =
+            document.createElement("div");
+
+        actions.className = "category-actions";
+
+
+        const renameButton =
+            document.createElement("button");
+
+        renameButton.textContent = "名前変更";
+
+        renameButton.onclick = () => {
+
+            renameCategory(category.id);
+
+        };
+
+
+        const deleteButton =
+            document.createElement("button");
+
+        deleteButton.textContent = "削除";
+
+        deleteButton.className =
+            "delete-category";
+
+        deleteButton.onclick = () => {
+
+            deleteCategory(category.id);
+
+        };
+
+
+        actions.appendChild(renameButton);
+
+        actions.appendChild(deleteButton);
+
+        header.appendChild(title);
+
+        header.appendChild(actions);
+
+
+        /* -------------------------
+           条件リスト
+        ------------------------- */
+
+        const list =
+            document.createElement("ul");
+
+        list.className = "condition-list";
+
+
+        if (category.conditions.length === 0) {
+
+            const empty =
+                document.createElement("li");
+
+            empty.className = "empty";
+
+            empty.textContent =
+                "このカテゴリには条件がありません。";
+
+            list.appendChild(empty);
+
+        } else {
+
+            category.conditions.forEach(
+                (condition, index) => {
+
+                    const item =
+                        document.createElement("li");
+
+                    item.className =
+                        "condition-item";
+
+
+                    const text =
+                        document.createElement("div");
+
+                    text.className =
+                        "condition-text";
+
+                    text.textContent =
+                        condition;
+
+
+                    const buttons =
+                        document.createElement("div");
+
+                    buttons.className =
+                        "condition-actions";
+
+
+                    const editButton =
+                        document.createElement("button");
+
+                    editButton.textContent = "編集";
+
+                    editButton.onclick = () => {
+
+                        openEditDialog(
+                            category.id,
+                            index
+                        );
+
+                    };
+
+
+                    const deleteButton =
+                        document.createElement("button");
+
+                    deleteButton.textContent = "削除";
+
+                    deleteButton.className =
+                        "delete";
+
+                    deleteButton.onclick = () => {
+
+                        deleteCondition(
+                            category.id,
+                            index
+                        );
+
+                    };
+
+
+                    buttons.appendChild(editButton);
+
+                    buttons.appendChild(deleteButton);
+
+
+                    item.appendChild(text);
+
+                    item.appendChild(buttons);
+
+                    list.appendChild(item);
+
+                }
+            );
+        }
+
+
+        categoryElement.appendChild(header);
+
+        categoryElement.appendChild(list);
+
+        container.appendChild(categoryElement);
+
+    });
+}
+
+
+/* =========================================================
+   カテゴリ選択欄
+========================================================= */
+
+function renderCategorySelects() {
+
+    const addSelect =
+        document.getElementById("addCategory");
+
+    const editSelect =
+        document.getElementById("editCategory");
+
+
+    const currentAddValue =
+        addSelect.value;
+
+    const currentEditValue =
+        editSelect.value;
+
+
+    addSelect.innerHTML = "";
+
+    editSelect.innerHTML = "";
+
+
+    data.categories.forEach(category => {
+
+        const option1 =
+            document.createElement("option");
+
+        option1.value =
+            category.id;
+
+        option1.textContent =
+            category.name;
+
+        addSelect.appendChild(option1);
+
+
+        const option2 =
+            document.createElement("option");
+
+        option2.value =
+            category.id;
+
+        option2.textContent =
+            category.name;
+
+        editSelect.appendChild(option2);
+
+    });
+
+
+    if (
+        data.categories.some(
+            c => c.id === currentAddValue
+        )
+    ) {
+
+        addSelect.value =
+            currentAddValue;
+
+    }
+
+
+    if (
+        data.categories.some(
+            c => c.id === currentEditValue
+        )
+    ) {
+
+        editSelect.value =
+            currentEditValue;
+
+    }
+}
+
+
+/* =========================================================
+   条件追加
+========================================================= */
+
+function addCondition() {
+
+    const input =
+        document.getElementById("newCondition");
+
+    const categoryId =
+        document.getElementById("addCategory").value;
+
+
+    const text =
+        input.value.trim();
+
+
+    if (!text) {
+
+        alert("条件文を入力してください。");
+
+        return;
+    }
+
+
+    const category =
+        data.categories.find(
+            c => c.id === categoryId
+        );
+
+
+    if (!category) {
+
+        alert("カテゴリが見つかりません。");
+
+        return;
+    }
+
+
+    category.conditions.push(text);
+
+    saveData();
+
+    input.value = "";
+
+    render();
+
+    setStatus("条件を追加しました。");
+}
+
+
+/* =========================================================
+   条件削除
+========================================================= */
+
+function deleteCondition(
+    categoryId,
+    index
+) {
+
+    const category =
+        data.categories.find(
+            c => c.id === categoryId
+        );
+
+
+    if (!category) {
+        return;
+    }
+
+
+    const condition =
+        category.conditions[index];
+
+
+    if (
+        !confirm(
+            `この条件を削除しますか？\n\n${condition}`
+        )
+    ) {
+
+        return;
+    }
+
+
+    category.conditions.splice(
+        index,
+        1
+    );
+
+
+    saveData();
+
+    render();
+
+    setStatus("条件を削除しました。");
+}
+
+
+/* =========================================================
+   条件編集ダイアログ
+========================================================= */
+
+function openEditDialog(
+    categoryId,
+    index
+) {
+
+    const category =
+        data.categories.find(
+            c => c.id === categoryId
+        );
+
+
+    if (!category) {
+        return;
+    }
+
+
+    editingCategoryId =
+        categoryId;
+
+    editingConditionIndex =
+        index;
+
+
+    document.getElementById(
+        "editCondition"
+    ).value =
+        category.conditions[index];
+
+
+    document.getElementById(
+        "editCategory"
+    ).value =
+        categoryId;
+
+
+    document.getElementById(
+        "editDialog"
+    ).showModal();
+}
+
+
+/* =========================================================
+   編集保存
+========================================================= */
+
+function saveEdit() {
+
+    const text =
+        document.getElementById(
+            "editCondition"
+        ).value.trim();
+
+
+    const newCategoryId =
+        document.getElementById(
+            "editCategory"
+        ).value;
+
+
+    if (!text) {
+
+        alert("条件文を入力してください。");
+
+        return;
+    }
+
+
+    const oldCategory =
+        data.categories.find(
+            c => c.id === editingCategoryId
+        );
+
+
+    const newCategory =
+        data.categories.find(
+            c => c.id === newCategoryId
+        );
+
+
+    if (
+        !oldCategory ||
+        !newCategory
+    ) {
+
+        return;
+    }
+
+
+    const condition =
+        oldCategory.conditions[
+            editingConditionIndex
+        ];
+
+
+    /* -------------------------
+       同じカテゴリ
+    ------------------------- */
+
+    if (
+        editingCategoryId ===
+        newCategoryId
+    ) {
+
+        oldCategory.conditions[
+            editingConditionIndex
+        ] = text;
+
+    }
+
+    /* -------------------------
+       別カテゴリへ移動
+    ------------------------- */
+
+    else {
+
+        oldCategory.conditions.splice(
+            editingConditionIndex,
+            1
+        );
+
+        newCategory.conditions.push(text);
+
+    }
+
+
+    saveData();
+
+    closeEditDialog();
+
+    render();
+
+    setStatus("条件を保存しました。");
+}
+
+
+/* =========================================================
+   編集キャンセル
+========================================================= */
+
+function closeEditDialog() {
+
+    const dialog =
+        document.getElementById(
+            "editDialog"
+        );
+
+    dialog.close();
+
+    editingCategoryId = null;
+
+    editingConditionIndex = null;
+}
+
+
+/* =========================================================
+   カテゴリ追加
+========================================================= */
+
+function addCategory() {
+
+    const input =
+        document.getElementById(
+            "newCategory"
+        );
+
+
+    const name =
+        input.value.trim();
+
+
+    if (!name) {
+
+        alert("カテゴリ名を入力してください。");
+
+        return;
+    }
+
+
+    const exists =
+        data.categories.some(
+            category =>
+                category.name === name
+        );
+
+
+    if (exists) {
+
+        alert("同じ名前のカテゴリがあります。");
+
+        return;
+    }
+
+
+    data.categories.push({
+
+        id: createId(),
+
+        name: name,
+
+        conditions: []
+
+    });
+
+
+    saveData();
+
+    input.value = "";
+
+    render();
+
+    setStatus("カテゴリを追加しました。");
+}
+
+
+/* =========================================================
+   カテゴリ名変更
+========================================================= */
+
+function renameCategory(categoryId) {
+
+    const category =
+        data.categories.find(
+            c => c.id === categoryId
+        );
+
+
+    if (!category) {
+        return;
+    }
+
+
+    const newName =
+        prompt(
+            "新しいカテゴリ名を入力してください。",
+            category.name
+        );
+
+
+    if (newName === null) {
+        return;
+    }
+
+
+    const trimmed =
+        newName.trim();
+
+
+    if (!trimmed) {
+
+        alert("カテゴリ名を入力してください。");
+
+        return;
+    }
+
+
+    category.name =
+        trimmed;
+
+
+    saveData();
+
+    render();
+
+    setStatus("カテゴリ名を変更しました。");
+}
+
+
+/* =========================================================
+   カテゴリ削除
+========================================================= */
+
+function deleteCategory(categoryId) {
+
+    const category =
+        data.categories.find(
+            c => c.id === categoryId
+        );
+
+
+    if (!category) {
+        return;
+    }
+
+
+    if (
+        data.categories.length === 1
+    ) {
+
+        alert(
+            "最後のカテゴリは削除できません。"
+        );
+
+        return;
+    }
+
+
+    const message =
+        category.conditions.length > 0
+
+        ? `${category.name}には${category.conditions.length}件の条件があります。\n\nカテゴリごと削除しますか？`
+
+        : `${category.name}を削除しますか？`;
+
+
+    if (!confirm(message)) {
+        return;
+    }
+
+
+    data.categories =
+        data.categories.filter(
+            c => c.id !== categoryId
+        );
+
+
+    saveData();
+
+    render();
+
+    setStatus("カテゴリを削除しました。");
+}
+
+
+/* =========================================================
+   書き出し
+========================================================= */
+
+function exportConditions() {
+
+    /*
+     * 現在のデータをJSONとして保存する。
+     *
+     * 拡張子は.txt。
+     * 中身はJSONなので、カテゴリ構造や条件順まで
+     * そのまま復元できる。
+     */
+
+    const exportData = {
+
+        app: "カラオケボウリング",
+
+        type: "conditions",
+
+        version: data.version || 1,
+
+        exportedAt:
+            new Date().toISOString(),
+
+        categories:
+            data.categories
+
+    };
+
+
+    const text =
+        JSON.stringify(
+            exportData,
+            null,
+            2
+        );
+
+
+    const blob =
+        new Blob(
+            [text],
+            {
+                type:
+                    "text/plain;charset=utf-8"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(blob);
+
+
+    const a =
+        document.createElement("a");
+
+
+    const date =
+        new Date();
+
+
+    const dateString =
+        date.getFullYear() +
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0") +
+        String(
+            date.getDate()
+        ).padStart(2, "0");
+
+
+    a.href = url;
+
+    a.download =
+        `karaoke-bowling-conditions-${dateString}.txt`;
+
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+
+
+    URL.revokeObjectURL(url);
+
+
+    setStatus(
+        "条件データを書き出しました。"
+    );
+}
+
+
+/* =========================================================
+   読み込み
+========================================================= */
+
+function importConditions(event) {
+
+    const file =
+        event.target.files[0];
+
+
+    if (!file) {
+        return;
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e) {
+
+            try {
+
+                const imported =
+                    JSON.parse(
+                        e.target.result
+                    );
+
+
+                /* -------------------------
+                   データ形式チェック
+                ------------------------- */
+
+                if (
+                    !imported ||
+                    !Array.isArray(
+                        imported.categories
+                    )
+                ) {
+
+                    throw new Error(
+                        "カテゴリデータがありません。"
+                    );
+                }
+
+
+                for (
+                    const category
+                    of imported.categories
+                ) {
+
+                    if (
+                        typeof category.name
+                        !== "string"
+                    ) {
+
+                        throw new Error(
+                            "カテゴリ名が不正です。"
+                        );
+                    }
+
+
+                    if (
+                        !Array.isArray(
+                            category.conditions
+                        )
+                    ) {
+
+                        throw new Error(
+                            "条件データが不正です。"
+                        );
+                    }
+                }
+
+
+                /* -------------------------
+                   IDがない古いデータにも対応
+                ------------------------- */
+
+                imported.categories =
+                    imported.categories.map(
+                        category => ({
+
+                            id:
+                                category.id ||
+                                createId(),
+
+                            name:
+                                category.name,
+
+                            conditions:
+                                category.conditions
+                                    .filter(
+                                        condition =>
+                                            typeof condition
+                                            === "string"
+                                    )
+
+                        })
+                    );
+
+
+                imported.version =
+                    imported.version || 1;
+
+
+                /* -------------------------
+                   上書き確認
+                ------------------------- */
+
+                const totalConditions =
+                    imported.categories.reduce(
+                        (sum, category) =>
+                            sum +
+                            category.conditions.length,
+                        0
+                    );
+
+
+                const ok =
+                    confirm(
+                        `この条件データを読み込みます。\n\n` +
+                        `カテゴリ：${imported.categories.length}個\n` +
+                        `条件：${totalConditions}個\n\n` +
+                        `現在の条件は上書きされます。`
+                    );
+
+
+                if (!ok) {
+
+                    resetFileInput();
+
+                    return;
+                }
+
+
+                data = {
+
+                    version:
+                        imported.version,
+
+                    categories:
+                        imported.categories
+
+                };
+
+
+                saveData();
+
+                render();
+
+
+                setStatus(
+                    `条件データを読み込みました。`
+                );
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "読み込みに失敗しました。\n\n" +
+                    "このファイルはカラオケボウリングの条件データではない可能性があります。"
+                );
+
+            }
+
+
+            resetFileInput();
+
+        };
+
+
+    reader.readAsText(
+        file,
+        "UTF-8"
+    );
+}
+
+
+/* =========================================================
+   ファイル選択欄をリセット
+========================================================= */
+
+function resetFileInput() {
+
+    document.getElementById(
+        "fileInput"
+    ).value = "";
+
+}
+
+
+/* =========================================================
+   初期状態へ戻す
+========================================================= */
+
+function resetConditions() {
+
+    const ok =
+        confirm(
+            "すべての条件を初期状態に戻します。\n\n" +
+            "現在追加・編集・削除した条件は消えます。\n\n" +
+            "本当に戻しますか？"
+        );
+
+
+    if (!ok) {
+        return;
+    }
+
+
+    data =
+        deepCopy(DEFAULT_DATA);
+
+
+    saveData();
+
+    render();
+
+    setStatus(
+        "初期状態に戻しました。"
+    );
+}
+
+
+/* =========================================================
+   ID生成
+========================================================= */
+
+function createId() {
+
+    return (
+        Date.now().toString(36) +
+        Math.random()
+            .toString(36)
+            .substring(2, 8)
+    );
+
+}
+
+
+/* =========================================================
+   ステータス表示
+========================================================= */
+
+function setStatus(
+    message,
+    error = false
+) {
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    status.textContent =
+        message;
+
+
+    status.style.color =
+        error
+            ? "#ff7777"
+            : "#aaa";
+
+
+    clearTimeout(
+        setStatus.timer
+    );
+
+
+    setStatus.timer =
+        setTimeout(
+            () => {
+
+                status.textContent =
+                    "";
+
+            },
+            3000
+        );
+}
+
+
+/* =========================================================
+   戻る
+========================================================= */
+
+function goBack() {
+
+    if (
+        document.referrer &&
+        document.referrer !==
+            location.href
+    ) {
+
+        history.back();
+
+    } else {
+
+        /*
+         * index.htmlが同じフォルダにある想定
+         */
+
+        location.href =
+            "index.html";
+    }
+}
+
+
+/* =========================================================
+   起動
+========================================================= */
+
+init();
+
+</script>
+
+</body>
+</html>
